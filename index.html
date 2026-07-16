@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="PHOTO B — a personal selection of photographs worth keeping."
+    />
+    <meta name="theme-color" content="#f4f0e8" />
+    <link rel="icon" type="image/png" href="/assets/photo-b-mark.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <title>PHOTO B — The Ones I Keep</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="PHOTO B, back to top">
+        <span class="brand__mark" aria-hidden="true"></span>
+        <span class="brand__wordmark">PHOTO B</span>
+      </a>
+
+      <div class="editorial-nav" aria-hidden="true">
+        <span>LATEST</span>
+        <span>COLLECTIONS</span>
+        <span>ABOUT</span>
+      </div>
+
+      <div class="issue">ISSUE 01 <span aria-hidden="true">—</span> 2026</div>
+
+      <div class="view-count" aria-live="polite">
+        <span class="view-count__dot" aria-hidden="true"></span>
+        <span id="view-count">VIEW 01 / 00</span>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="page-title">
+        <p class="hero__eyebrow">PERSONAL SELECTION <span aria-hidden="true">·</span> 2026</p>
+        <h1 id="page-title">
+          <span>THE ONES</span>
+          <span class="hero__title-offset">I KEEP</span>
+        </h1>
+      </section>
+
+      <section class="gallery-section" aria-label="Photo collection">
+        <div id="gallery" class="gallery-grid"></div>
+        <div id="empty-state" class="empty-state" hidden>
+          <span>00</span>
+          <h2>The next edit is taking shape.</h2>
+          <p>Add an HTTPS image link to <code>src/data/photos.txt</code>.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>PHOTO B</span>
+      <span>SELECTED BY B</span>
+      <span>© 2026</span>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
