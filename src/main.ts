@@ -15,6 +15,8 @@ interface IssueSource {
   load: () => Promise<string>;
 }
 
+type PageView = 'gallery' | 'collections' | 'about';
+
 const issueModules = import.meta.glob('./data/issues/*.txt', {
   query: '?raw',
   import: 'default',
@@ -43,13 +45,18 @@ if (issues.length === 0) {
   throw new Error('No gallery issues found in src/data/issues.');
 }
 
-const requestedIssue = new URLSearchParams(window.location.search).get('issue');
+const searchParams = new URLSearchParams(window.location.search);
+const requestedView = searchParams.get('view');
+const pageView: PageView = requestedView === 'collections' || requestedView === 'about'
+  ? requestedView
+  : 'gallery';
+const requestedIssue = searchParams.get('issue');
 const requestedIssueIndex = requestedIssue
   ? issues.findIndex((issue) => issue.slug === requestedIssue)
   : -1;
 const activeIssueIndex = requestedIssueIndex >= 0 ? requestedIssueIndex : issues.length - 1;
 const activeIssue = issues[activeIssueIndex];
-const photoSource = await activeIssue.load();
+const photoSource = pageView === 'gallery' ? await activeIssue.load() : '';
 
 function getRequiredElement<T extends HTMLElement>(selector: string): T {
   const element = document.querySelector<T>(selector);
@@ -64,11 +71,22 @@ function getRequiredElement<T extends HTMLElement>(selector: string): T {
 const gallery = getRequiredElement<HTMLElement>('#gallery');
 const emptyState = getRequiredElement<HTMLElement>('#empty-state');
 const viewCount = getRequiredElement<HTMLElement>('#view-count');
+const viewStatus = getRequiredElement<HTMLElement>('#view-status');
 const issueNumber = getRequiredElement<HTMLElement>('#issue-number');
 const issueYear = getRequiredElement<HTMLElement>('#issue-year');
 const heroYear = getRequiredElement<HTMLElement>('#hero-year');
 const previousIssueLink = getRequiredElement<HTMLAnchorElement>('#previous-issue');
 const nextIssueLink = getRequiredElement<HTMLAnchorElement>('#next-issue');
+const issueSwitcher = getRequiredElement<HTMLElement>('.issue-switcher');
+const siteHeader = getRequiredElement<HTMLElement>('#site-header');
+const galleryPage = getRequiredElement<HTMLElement>('#gallery-page');
+const collectionsPage = getRequiredElement<HTMLElement>('#collections-page');
+const collectionsGrid = getRequiredElement<HTMLElement>('#collections-grid');
+const aboutPage = getRequiredElement<HTMLElement>('#about-page');
+const collectionsYear = getRequiredElement<HTMLElement>('#collections-year');
+const latestLink = getRequiredElement<HTMLAnchorElement>('#latest-link');
+const collectionsLink = getRequiredElement<HTMLAnchorElement>('#collections-link');
+const aboutLink = getRequiredElement<HTMLAnchorElement>('#about-link');
 
 const parsed = parsePhotoEntries(photoSource);
 let layoutFrame: number | undefined;
@@ -111,12 +129,35 @@ function configureIssueLink(
   link.setAttribute('aria-label', `${direction} issue: ${formatPhotoNumber(issue.number)}, ${issue.year}`);
 }
 
+function setActiveNavigation(link: HTMLAnchorElement): void {
+  link.classList.add('is-active');
+  link.setAttribute('aria-current', 'page');
+}
+
 issueNumber.textContent = formatPhotoNumber(activeIssue.number);
 issueYear.textContent = String(activeIssue.year);
 heroYear.textContent = String(activeIssue.year);
-document.title = `PHOTO B — Issue ${formatPhotoNumber(activeIssue.number)} / ${activeIssue.year}`;
+collectionsYear.textContent = String(issues.at(-1)?.year ?? activeIssue.year);
 configureIssueLink(previousIssueLink, issues[activeIssueIndex - 1], 'Previous');
 configureIssueLink(nextIssueLink, issues[activeIssueIndex + 1], 'Next');
+
+galleryPage.hidden = pageView !== 'gallery';
+collectionsPage.hidden = pageView !== 'collections';
+aboutPage.hidden = pageView !== 'about';
+issueSwitcher.hidden = pageView !== 'gallery';
+viewStatus.hidden = pageView !== 'gallery';
+siteHeader.classList.toggle('site-header--simple', pageView !== 'gallery');
+
+if (pageView === 'collections') {
+  document.title = 'PHOTO B — Collections';
+  setActiveNavigation(collectionsLink);
+} else if (pageView === 'about') {
+  document.title = 'PHOTO B — About';
+  setActiveNavigation(aboutLink);
+} else {
+  document.title = `PHOTO B — Issue ${formatPhotoNumber(activeIssue.number)} / ${activeIssue.year}`;
+  setActiveNavigation(latestLink);
+}
 
 parsed.warnings.forEach((warning) => console.warn(`[PHOTO B] ${warning}`));
 
@@ -181,6 +222,80 @@ function scheduleGalleryLayout(): void {
   }
 
   layoutFrame = window.requestAnimationFrame(layoutGallery);
+}
+
+function createCollectionCard(
+  issue: IssueSource,
+  photos: PhotoEntry[],
+  isLatest: boolean,
+  index: number,
+): HTMLElement {
+  const article = document.createElement('article');
+  const link = document.createElement('a');
+  const media = document.createElement('span');
+  const meta = document.createElement('span');
+  const issueLabel = document.createElement('span');
+  const count = document.createElement('span');
+  const cover = photos[0];
+
+  article.className = 'collection-card';
+  link.className = 'collection-card__link';
+  link.href = `?issue=${issue.slug}`;
+  link.setAttribute('aria-label', `Open issue ${formatPhotoNumber(issue.number)}, ${issue.year}`);
+  media.className = 'collection-card__media';
+  meta.className = 'collection-card__meta';
+  issueLabel.className = 'collection-card__issue';
+  issueLabel.textContent = `ISSUE ${formatPhotoNumber(issue.number)} — ${issue.year}`;
+  count.className = 'collection-card__count';
+  count.textContent = `${formatPhotoNumber(photos.length)} PHOTOGRAPHS`;
+
+  if (isLatest) {
+    const latest = document.createElement('span');
+    latest.className = 'collection-card__latest';
+    latest.textContent = 'LATEST';
+    meta.append(latest);
+  }
+
+  if (cover) {
+    const image = document.createElement('img');
+    image.src = cover.url;
+    image.alt = `Cover of issue ${formatPhotoNumber(issue.number)}, ${issue.year}`;
+    image.loading = index === 0 ? 'eager' : 'lazy';
+    image.decoding = 'async';
+
+    if (index === 0) {
+      image.fetchPriority = 'high';
+    }
+
+    image.addEventListener('load', () => article.classList.add('is-loaded'), { once: true });
+    image.addEventListener('error', () => article.classList.add('is-error'), { once: true });
+    media.append(image);
+  } else {
+    article.classList.add('is-error');
+  }
+
+  meta.append(issueLabel, count);
+  link.append(media, meta);
+  article.append(link);
+
+  return article;
+}
+
+async function renderCollections(): Promise<void> {
+  const issueCollections = await Promise.all(
+    [...issues].reverse().map(async (issue) => {
+      const parsedIssue = parsePhotoEntries(await issue.load());
+      parsedIssue.warnings.forEach((warning) => console.warn(`[PHOTO B / ${issue.slug}] ${warning}`));
+      return { issue, photos: parsedIssue.photos };
+    }),
+  );
+  const fragment = document.createDocumentFragment();
+
+  issueCollections.forEach(({ issue, photos }, index) => {
+    fragment.append(createCollectionCard(issue, photos, index === 0, index));
+  });
+
+  collectionsGrid.append(fragment);
 }
 
 function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
@@ -264,11 +379,13 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
   return figure;
 }
 
-if (parsed.photos.length === 0) {
+if (pageView === 'collections') {
+  await renderCollections();
+} else if (pageView === 'gallery' && parsed.photos.length === 0) {
   gallery.hidden = true;
   emptyState.hidden = false;
   updateViewCount(0, 0);
-} else {
+} else if (pageView === 'gallery') {
   const fragment = document.createDocumentFragment();
   parsed.photos.forEach((photo, index) => fragment.append(createPhotoCard(photo, index)));
   gallery.append(fragment);

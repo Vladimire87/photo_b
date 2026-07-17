@@ -155,6 +155,49 @@ test('requests photographs only from the selected issue', async ({ page }) => {
   expect(requestedImages.every((url) => url.includes('photo-b-2026-02'))).toBe(true);
 });
 
+test('renders the collections archive and opens an issue', async ({ page }) => {
+  await mockImages(page);
+  await page.goto('/?view=collections');
+
+  await expect(page).toHaveTitle('PHOTO B — Collections');
+  await expect(page.getByRole('heading', { name: 'COLLECTIONS' })).toBeVisible();
+  await expect(page.locator('#collections-link')).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('.collection-card')).toHaveCount(3);
+  await expect(page.locator('.collection-card').first()).toContainText('ISSUE 03 — 2026');
+  await expect(page.locator('.collection-card').first()).toContainText('LATEST');
+  await expect(page.locator('#view-status')).toBeHidden();
+
+  const dimensions = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    document: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport + 1);
+
+  await page.locator('.collection-card__link').nth(1).click();
+  await expect(page).toHaveURL(/\?issue=2026-02$/);
+  await expect(page.locator('#issue-label')).toContainText('ISSUE 02 — 2026');
+});
+
+test('renders the typographic about page without requesting gallery photos', async ({ page }) => {
+  const requestedImages: string[] = [];
+  await mockImages(page, (url) => requestedImages.push(url));
+  await page.goto('/?view=about');
+
+  await expect(page).toHaveTitle('PHOTO B — About');
+  await expect(page.getByRole('heading', { name: 'PHOTOS I LIKE.' })).toBeVisible();
+  await expect(page.locator('.about-page__lead')).toContainText('simply photos I like');
+  await expect(page.locator('#about-link')).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('#view-status')).toBeHidden();
+  await expect(page.locator('.photo-card')).toHaveCount(0);
+  expect(requestedImages).toEqual([]);
+
+  const dimensions = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    document: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport + 1);
+});
+
 test('opens and closes the touch-friendly lightbox', async ({ page }) => {
   await mockImages(page);
   await page.goto('/');

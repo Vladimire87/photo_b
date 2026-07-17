@@ -18,17 +18,17 @@
     <title>PHOTO B — The Ones I Keep</title>
   </head>
   <body>
-    <header class="site-header">
-      <a class="brand" href="#top" aria-label="PHOTO B, back to top">
+    <header id="site-header" class="site-header">
+      <a class="brand" href="./" aria-label="PHOTO B, latest issue">
         <span class="brand__mark" aria-hidden="true"></span>
         <span class="brand__wordmark">PHOTO B</span>
       </a>
 
-      <div class="editorial-nav">
-        <a href="./">LATEST</a>
-        <span>COLLECTIONS</span>
-        <span>ABOUT</span>
-      </div>
+      <nav class="editorial-nav" aria-label="Primary navigation">
+        <a id="latest-link" href="./">LATEST</a>
+        <a id="collections-link" href="?view=collections">COLLECTIONS</a>
+        <a id="about-link" href="?view=about">ABOUT</a>
+      </nav>
 
       <nav class="issue issue-switcher" aria-label="Issue navigation">
         <a id="previous-issue" class="issue-switcher__control" rel="prev">PREV</a>
@@ -39,29 +39,63 @@
         <a id="next-issue" class="issue-switcher__control" rel="next">NEXT</a>
       </nav>
 
-      <div class="view-count" aria-live="polite">
+      <div id="view-status" class="view-count" aria-live="polite">
         <span class="view-count__dot" aria-hidden="true"></span>
         <span id="view-count">VIEW 01 / 00</span>
       </div>
     </header>
 
     <main id="top">
-      <section class="hero" aria-labelledby="page-title">
-        <p class="hero__eyebrow">
-          PERSONAL SELECTION <span aria-hidden="true">·</span> <span id="hero-year">2026</span>
-        </p>
-        <h1 id="page-title">
-          <span>THE ONES</span>
-          <span class="hero__title-offset">I KEEP</span>
-        </h1>
+      <div id="gallery-page">
+        <section class="hero" aria-labelledby="page-title">
+          <p class="hero__eyebrow">
+            PERSONAL SELECTION <span aria-hidden="true">·</span> <span id="hero-year">2026</span>
+          </p>
+          <h1 id="page-title">
+            <span>THE ONES</span>
+            <span class="hero__title-offset">I KEEP</span>
+          </h1>
+        </section>
+
+        <section class="gallery-section" aria-label="Photo collection">
+          <div id="gallery" class="gallery-grid"></div>
+          <div id="empty-state" class="empty-state" hidden>
+            <span>00</span>
+            <h2>The next edit is taking shape.</h2>
+            <p>Add an HTTPS image link to the current file in <code>src/data/issues</code>.</p>
+          </div>
+        </section>
+      </div>
+
+      <section id="collections-page" class="editorial-page collections-page" aria-labelledby="collections-title" hidden>
+        <header class="editorial-page__hero">
+          <p class="editorial-page__eyebrow">
+            ALL ISSUES <span aria-hidden="true">·</span> <span id="collections-year">2026</span>
+          </p>
+          <h1 id="collections-title">COLLECTIONS</h1>
+          <p class="editorial-page__intro">
+            I group the photos into issues so the site does not become one endless page.
+          </p>
+        </header>
+        <div id="collections-grid" class="collections-grid"></div>
       </section>
 
-      <section class="gallery-section" aria-label="Photo collection">
-        <div id="gallery" class="gallery-grid"></div>
-        <div id="empty-state" class="empty-state" hidden>
-          <span>00</span>
-          <h2>The next edit is taking shape.</h2>
-          <p>Add an HTTPS image link to the current file in <code>src/data/issues</code>.</p>
+      <section id="about-page" class="editorial-page about-page" aria-labelledby="about-title" hidden>
+        <header class="about-page__hero">
+          <p class="editorial-page__eyebrow">ABOUT</p>
+          <h1 id="about-title">PHOTOS <span class="about-page__title-offset">I LIKE.</span></h1>
+        </header>
+        <div class="about-page__body">
+          <p class="about-page__lead">
+            These are simply photos I like. I collect them here so I can come back to them.
+          </p>
+          <p>
+            There is no fixed theme or complicated idea behind it. New photos are added in separate issues.
+          </p>
+          <div class="about-page__signature" aria-label="Personal collection, since 2026">
+            <span>PERSONAL COLLECTION</span>
+            <span>SINCE 2026</span>
+          </div>
         </div>
       </section>
     </main>
