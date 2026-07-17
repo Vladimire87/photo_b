@@ -1,7 +1,0 @@
-# Test issue. Replace these lines with your own HTTPS image URLs.
-https://picsum.photos/seed/photo-b-2026-02-01/1200/1600 | MORNING STUDY
-https://picsum.photos/seed/photo-b-2026-02-02/1600/1200 | OPEN ROAD
-https://picsum.photos/seed/photo-b-2026-02-03/1200/1200 | QUIET FORM
-https://picsum.photos/seed/photo-b-2026-02-04/1400/1800 | BLUE HOUR
-https://picsum.photos/seed/photo-b-2026-02-05/1800/1200 | DISTANT LINE
-https://picsum.photos/seed/photo-b-2026-02-06/1200/1700 | AFTER LIGHT
