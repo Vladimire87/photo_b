@@ -25,6 +25,28 @@ const viewCount = getRequiredElement<HTMLElement>('#view-count');
 
 const parsed = parsePhotoEntries(photoSource);
 let layoutFrame: number | undefined;
+const lazyImageObserver = 'IntersectionObserver' in window
+  ? new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return;
+          }
+
+          const image = entry.target as HTMLImageElement;
+          const source = image.dataset.src;
+
+          if (source) {
+            image.src = source;
+            delete image.dataset.src;
+          }
+
+          observer.unobserve(image);
+        });
+      },
+      { rootMargin: '600px 0px' },
+    )
+  : null;
 
 parsed.warnings.forEach((warning) => console.warn(`[PHOTO B] ${warning}`));
 
@@ -110,13 +132,15 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
   link.dataset.title = photo.caption ? `${number} — ${photo.caption}` : `Photo ${number}`;
   link.setAttribute('aria-label', `Open photo ${number} in full-screen gallery`);
 
-  image.src = photo.url;
   image.alt = `PHOTO B gallery photograph ${number}`;
   image.loading = index < 2 ? 'eager' : 'lazy';
   image.decoding = 'async';
 
   if (index < 2) {
+    image.src = photo.url;
     image.fetchPriority = 'high';
+  } else {
+    image.dataset.src = photo.url;
   }
 
   const markLoaded = (): void => {
@@ -138,7 +162,7 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
   image.addEventListener('load', markLoaded, { once: true });
   image.addEventListener('error', markFailed, { once: true });
 
-  if (image.complete) {
+  if (image.getAttribute('src') && image.complete) {
     if (image.naturalWidth > 0) {
       markLoaded();
     } else {
@@ -178,6 +202,15 @@ if (parsed.photos.length === 0) {
   const fragment = document.createDocumentFragment();
   parsed.photos.forEach((photo, index) => fragment.append(createPhotoCard(photo, index)));
   gallery.append(fragment);
+  gallery.querySelectorAll<HTMLImageElement>('img[data-src]').forEach((image) => {
+    if (lazyImageObserver) {
+      lazyImageObserver.observe(image);
+      return;
+    }
+
+    image.src = image.dataset.src ?? '';
+    delete image.dataset.src;
+  });
   updateViewCount(1, parsed.photos.length);
   scheduleGalleryLayout();
 

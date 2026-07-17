@@ -94,6 +94,21 @@ test('renders the complete editorial gallery without horizontal overflow', async
   expect(logoAlignment).toBeLessThanOrEqual(2);
 });
 
+test('does not request distant photos until they approach the viewport', async ({ page }) => {
+  await mockImages(page);
+  await page.goto('/');
+
+  const lastImage = page.locator('.photo-card img').last();
+  await expect(lastImage).not.toHaveAttribute('src', /.+/);
+  await expect(lastImage).toHaveAttribute('data-src', /^https:\/\//);
+
+  await lastImage.scrollIntoViewIfNeeded();
+
+  await expect(lastImage).toHaveAttribute('src', /^https:\/\//);
+  await expect(lastImage).not.toHaveAttribute('data-src');
+  await expect(lastImage.locator('..').locator('..')).toHaveClass(/is-loaded/);
+});
+
 test('opens and closes the touch-friendly lightbox', async ({ page }) => {
   await mockImages(page);
   await page.goto('/');
