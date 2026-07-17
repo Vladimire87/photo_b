@@ -1,13 +1,55 @@
 import GLightbox from 'glightbox';
 import 'glightbox/dist/css/glightbox.css';
 import './styles.css';
-import photoSource from './data/photos.txt?raw';
 import {
   formatPhotoNumber,
   getLayoutVariant,
   parsePhotoEntries,
   type PhotoEntry,
 } from './gallery';
+
+interface IssueSource {
+  slug: string;
+  year: number;
+  number: number;
+  load: () => Promise<string>;
+}
+
+const issueModules = import.meta.glob('./data/issues/*.txt', {
+  query: '?raw',
+  import: 'default',
+}) as Record<string, () => Promise<string>>;
+
+const issues = Object.entries(issueModules)
+  .map<IssueSource | null>(([path, load]) => {
+    const match = path.match(/\/([0-9]{4})-([0-9]{2})\.txt$/);
+
+    if (!match) {
+      console.warn(`[PHOTO B] Ignoring issue file with an invalid name: ${path}`);
+      return null;
+    }
+
+    return {
+      slug: `${match[1]}-${match[2]}`,
+      year: Number(match[1]),
+      number: Number(match[2]),
+      load,
+    };
+  })
+  .filter((issue): issue is IssueSource => issue !== null)
+  .sort((first, second) => first.slug.localeCompare(second.slug));
+
+if (issues.length === 0) {
+  throw new Error('No gallery issues found in src/data/issues.');
+}
+
+const requestedIssue = new URLSearchParams(window.location.search).get('issue');
+const requestedIssueIndex = requestedIssue
+  ? issues.findIndex((issue) => issue.slug === requestedIssue)
+  : -1;
+const activeIssueIndex = requestedIssueIndex >= 0 ? requestedIssueIndex : issues.length - 1;
+const activeIssue = issues[activeIssueIndex];
+const photoSource = await activeIssue.load();
 
 function getRequiredElement<T extends HTMLElement>(selector: string): T {
   const element = document.querySelector<T>(selector);
@@ -22,6 +64,11 @@ function getRequiredElement<T extends HTMLElement>(selector: string): T {
 const gallery = getRequiredElement<HTMLElement>('#gallery');
 const emptyState = getRequiredElement<HTMLElement>('#empty-state');
 const viewCount = getRequiredElement<HTMLElement>('#view-count');
+const issueNumber = getRequiredElement<HTMLElement>('#issue-number');
+const issueYear = getRequiredElement<HTMLElement>('#issue-year');
+const heroYear = getRequiredElement<HTMLElement>('#hero-year');
+const previousIssueLink = getRequiredElement<HTMLAnchorElement>('#previous-issue');
+const nextIssueLink = getRequiredElement<HTMLAnchorElement>('#next-issue');
 
 const parsed = parsePhotoEntries(photoSource);
 let layoutFrame: number | undefined;
@@ -47,6 +94,29 @@ const lazyImageObserver = 'IntersectionObserver' in window
       { rootMargin: '600px 0px' },
     )
   : null;
+
+function configureIssueLink(
+  link: HTMLAnchorElement,
+  issue: IssueSource | undefined,
+  direction: 'Previous' | 'Next',
+): void {
+  if (!issue) {
+    link.removeAttribute('href');
+    link.setAttribute('aria-disabled', 'true');
+    link.classList.add('is-disabled');
+    return;
+  }
+
+  link.href = `?issue=${issue.slug}`;
+  link.setAttribute('aria-label', `${direction} issue: ${formatPhotoNumber(issue.number)}, ${issue.year}`);
+}
+
+issueNumber.textContent = formatPhotoNumber(activeIssue.number);
+issueYear.textContent = String(activeIssue.year);
+heroYear.textContent = String(activeIssue.year);
+document.title = `PHOTO B — Issue ${formatPhotoNumber(activeIssue.number)} / ${activeIssue.year}`;
+configureIssueLink(previousIssueLink, issues[activeIssueIndex - 1], 'Previous');
+configureIssueLink(nextIssueLink, issues[activeIssueIndex + 1], 'Next');
 
 parsed.warnings.forEach((warning) => console.warn(`[PHOTO B] ${warning}`));
 

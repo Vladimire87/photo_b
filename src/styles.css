@@ -34,6 +34,11 @@ a {
   color: inherit;
 }
 
+.editorial-nav a,
+.issue-switcher a {
+  text-decoration: none;
+}
+
 .site-header {
   display: grid;
   grid-template-columns: minmax(12rem, 1.2fr) minmax(24rem, 1.7fr) auto auto;
@@ -79,6 +84,36 @@ a {
   display: flex;
   justify-content: center;
   gap: clamp(2rem, 4vw, 6rem);
+}
+
+.issue-switcher {
+  display: grid;
+  grid-template-columns: 2.5rem auto 2.5rem;
+  align-items: center;
+  gap: 0.7rem;
+  text-align: center;
+}
+
+.issue-switcher__control {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+}
+
+.issue-switcher__control:hover {
+  color: var(--accent);
+}
+
+.issue-switcher__control.is-disabled {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.editorial-nav a:focus-visible,
+.issue-switcher__control:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
 }
 
 .issue,
@@ -325,6 +360,7 @@ a {
 
 .site-footer {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 2rem;
   margin-inline: var(--page-gutter);
@@ -333,6 +369,17 @@ a {
   color: var(--muted);
   font-size: 0.63rem;
   letter-spacing: 0.08em;
+}
+
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.footer-brand .brand__mark {
+  height: 1.45em;
 }
 
 .glightbox-container {
@@ -406,8 +453,11 @@ a {
     height: 0.88em;
   }
 
-  .issue {
-    display: none;
+  .issue-switcher {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+    padding-bottom: 0.9rem;
   }
 
   .view-count {

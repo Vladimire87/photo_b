@@ -5,9 +5,10 @@ const transparentPixel = Buffer.from(
   'base64',
 );
 
-async function mockImages(page: Page): Promise<void> {
+async function mockImages(page: Page, onImageRequest?: (url: string) => void): Promise<void> {
   await page.route('https://**/*', async (route) => {
     if (route.request().resourceType() === 'image') {
+      onImageRequest?.(route.request().url());
       await route.fulfill({
         status: 200,
         contentType: 'image/png',
@@ -26,6 +27,7 @@ test('renders the complete editorial gallery without horizontal overflow', async
   await page.goto('/');
 
   await expect(page.getByRole('heading', { name: 'THE ONES I KEEP' })).toBeVisible();
+  await expect(page.locator('#issue-label')).toContainText('ISSUE 03 — 2026');
   const photoCount = await page.locator('.photo-card').count();
   expect(photoCount).toBeGreaterThan(0);
   await expect(page.locator('#view-count')).toHaveText(`VIEW 01 / ${String(photoCount).padStart(2, '0')}`);
@@ -92,11 +94,24 @@ test('renders the complete editorial gallery without horizontal overflow', async
   });
 
   expect(logoAlignment).toBeLessThanOrEqual(2);
+
+  const footerLogoAlignment = await page.evaluate(() => {
+    const mark = document.querySelector('.footer-brand .brand__mark')?.getBoundingClientRect();
+    const label = document.querySelector('.footer-brand > span:last-child')?.getBoundingClientRect();
+
+    if (!mark || !label) {
+      return Number.POSITIVE_INFINITY;
+    }
+
+    return Math.abs(mark.top + mark.height / 2 - (label.top + label.height / 2));
+  });
+
+  expect(footerLogoAlignment).toBeLessThanOrEqual(1);
 });
 
 test('does not request distant photos until they approach the viewport', async ({ page }) => {
   await mockImages(page);
-  await page.goto('/');
+  await page.goto('/?issue=2026-01');
 
   const lastImage = page.locator('.photo-card img').last();
   await expect(lastImage).not.toHaveAttribute('src', /.+/);
@@ -107,6 +122,37 @@ test('does not request distant photos until they approach the viewport', async (
   await expect(lastImage).toHaveAttribute('src', /^https:\/\//);
   await expect(lastImage).not.toHaveAttribute('data-src');
   await expect(lastImage.locator('..').locator('..')).toHaveClass(/is-loaded/);
+});
+
+test('opens the latest issue and navigates between stable issue URLs', async ({ page }) => {
+  await mockImages(page);
+  await page.goto('/');
+
+  await expect(page).toHaveTitle('PHOTO B — Issue 03 / 2026');
+  await expect(page.locator('#issue-label')).toContainText('ISSUE 03 — 2026');
+  await expect(page.locator('.photo-card')).toHaveCount(6);
+  await expect(page.locator('#next-issue')).toHaveAttribute('aria-disabled', 'true');
+
+  await page.locator('#previous-issue').click();
+  await expect(page).toHaveURL(/\?issue=2026-02$/);
+  await expect(page.locator('#issue-label')).toContainText('ISSUE 02 — 2026');
+  await expect(page.locator('.photo-card')).toHaveCount(6);
+
+  await page.locator('#previous-issue').click();
+  await expect(page).toHaveURL(/\?issue=2026-01$/);
+  await expect(page.locator('#issue-label')).toContainText('ISSUE 01 — 2026');
+  await expect(page.locator('.photo-card')).toHaveCount(19);
+  await expect(page.locator('#previous-issue')).toHaveAttribute('aria-disabled', 'true');
+});
+
+test('requests photographs only from the selected issue', async ({ page }) => {
+  const requestedImages: string[] = [];
+  await mockImages(page, (url) => requestedImages.push(url));
+  await page.goto('/?issue=2026-02');
+  await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
+
+  expect(requestedImages.length).toBeGreaterThan(0);
+  expect(requestedImages.every((url) => url.includes('photo-b-2026-02'))).toBe(true);
 });
 
 test('opens and closes the touch-friendly lightbox', async ({ page }) => {
