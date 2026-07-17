@@ -22,6 +22,23 @@ async function mockImages(page: Page, onImageRequest?: (url: string) => void): P
   });
 }
 
+test('publishes a complete large-image social preview', async ({ page, request }) => {
+  await page.goto('/');
+
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'PHOTO B — Photos I Like');
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+    'content',
+    'https://photob.pages.dev/assets/photo-b-og.png',
+  );
+  await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute('content', '1200');
+  await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute('content', '630');
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
+
+  const preview = await request.get('/assets/photo-b-og.png');
+  expect(preview.ok()).toBe(true);
+  expect(preview.headers()['content-type']).toContain('image/png');
+});
+
 test('renders the complete editorial gallery without horizontal overflow', async ({ page }) => {
   await mockImages(page);
   await page.goto('/');

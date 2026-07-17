@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f4f0e8"/>
+  <rect x="0" y="0" width="1200" height="12" fill="#b62a22"/>
+  <rect x="930" y="12" width="270" height="618" fill="#b62a22"/>
+
+  <image href="photo-b-mark.png" x="74" y="66" width="38" height="60"/>
+  <text x="132" y="108" fill="#171514" font-family="Arial, Helvetica, sans-serif" font-size="31" font-weight="700" letter-spacing="2">PHOTO B</text>
+
+  <text x="74" y="317" fill="#171514" font-family="Arial, Helvetica, sans-serif" font-size="104" font-weight="700">PHOTOS</text>
+  <text x="72" y="432" fill="#b62a22" font-family="Georgia, 'Times New Roman', serif" font-size="116" font-style="italic">I like.</text>
+
+  <line x1="76" y1="523" x2="854" y2="523" stroke="#171514" stroke-width="2"/>
+  <text x="76" y="569" fill="#171514" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="600" letter-spacing="4">PERSONAL COLLECTION</text>
+  <text x="851" y="569" fill="#171514" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="600" letter-spacing="3" text-anchor="end">2026</text>
+
+  <text x="1065" y="88" fill="#f4f0e8" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" letter-spacing="3" text-anchor="middle">PHOTO B</text>
+  <text x="1065" y="565" fill="#f4f0e8" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-style="italic" text-anchor="middle" transform="rotate(-90 1065 565)">The ones I keep</text>
+</svg>
