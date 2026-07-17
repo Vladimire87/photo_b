@@ -43,3 +43,27 @@ npm run build
 
 The production-ready static files are written to `dist/` and can be published on
 any static host.
+
+## Deploy to Cloudflare Pages
+
+Git deployment is the recommended option: every push to the production branch
+is built and published automatically, while pull requests receive preview URLs.
+
+1. Push this project to a GitHub or GitLab repository.
+2. In Cloudflare, open **Workers & Pages**, create a Pages application, and
+   connect the repository.
+3. Use these build settings:
+   - Production branch: `main` (or the branch used by the repository)
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - Root directory: leave empty
+4. No environment variables, Functions, databases, or storage bindings are
+   required.
+5. Deploy. Cloudflare provides a `*.pages.dev` address automatically.
+
+The repository pins Node.js in `.node-version`. Security headers are copied from
+`public/_headers` into every production build.
+
+To connect a domain after the first deployment, open the Pages project, choose
+**Custom domains**, and select **Set up a domain**. Follow the DNS instructions
+shown by Cloudflare; HTTPS certificates are issued automatically.
