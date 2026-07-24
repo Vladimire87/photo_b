@@ -6,9 +6,13 @@
   text-rendering: optimizeLegibility;
   --paper: #f4f0e8;
   --ink: #1b1a18;
-  --muted: #736f68;
+  --muted: #706c65;
   --accent: #b83a2e;
   --line: rgba(27, 26, 24, 0.34);
+  --image-placeholder: #e3ddd3;
+  --skeleton-shadow: #ded8ce;
+  --skeleton-light: #eee9df;
+  --lightbox-paper: #f7f3eb;
   --page-gutter: clamp(1.25rem, 2.15vw, 3.5rem);
 }
 
@@ -63,7 +67,7 @@ a {
   font-family: 'Cormorant Garamond', 'Times New Roman', serif;
   font-size: clamp(1.9rem, 2.45vw, 3.3rem);
   font-weight: 600;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.04em;
   line-height: 1;
   text-decoration: none;
 }
@@ -192,16 +196,16 @@ a {
   gap: 0.22em;
   margin: 0;
   font-family: 'Cormorant Garamond', 'Times New Roman', serif;
-  font-size: clamp(3.35rem, 5.6vw, 7.5rem);
+  font-size: clamp(3.35rem, 5.6vw, 6rem);
   font-weight: 500;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.04em;
   line-height: 0.9;
 }
 
 .hero__title-offset {
   margin-left: 0;
   font-style: italic;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.04em;
 }
 
 .editorial-page {
@@ -234,9 +238,9 @@ a {
   grid-row: 1 / 3;
   margin: 0;
   font-family: 'Cormorant Garamond', 'Times New Roman', serif;
-  font-size: clamp(4.5rem, 8vw, 10rem);
+  font-size: clamp(4.5rem, 8vw, 6rem);
   font-weight: 500;
-  letter-spacing: -0.075em;
+  letter-spacing: -0.04em;
   line-height: 0.82;
   white-space: nowrap;
 }
@@ -250,6 +254,7 @@ a {
   font-family: 'Cormorant Garamond', 'Times New Roman', serif;
   font-size: clamp(1.35rem, 1.7vw, 2rem);
   line-height: 1.2;
+  text-wrap: balance;
 }
 
 .collections-grid {
@@ -274,7 +279,7 @@ a {
   display: block;
   overflow: hidden;
   aspect-ratio: 4 / 5;
-  background: #e3ddd3;
+  background: var(--image-placeholder);
 }
 
 .collection-card:nth-child(3n + 2) .collection-card__media {
@@ -376,9 +381,9 @@ a {
   grid-column: 3 / -1;
   margin: 0;
   font-family: 'Cormorant Garamond', 'Times New Roman', serif;
-  font-size: clamp(4rem, 7.5vw, 9.5rem);
+  font-size: clamp(4rem, 7.5vw, 6rem);
   font-weight: 500;
-  letter-spacing: -0.065em;
+  letter-spacing: -0.04em;
   line-height: 0.82;
   white-space: nowrap;
 }
@@ -405,6 +410,7 @@ a {
   font-size: clamp(1.8rem, 2.9vw, 3.8rem);
   letter-spacing: -0.025em;
   line-height: 1.08;
+  text-wrap: balance;
 }
 
 .about-page__body > p:not(.about-page__lead) {
@@ -485,14 +491,19 @@ a {
   overflow: hidden;
   aspect-ratio: var(--photo-aspect, 4 / 5);
   cursor: zoom-in;
-  background: #e3ddd3;
+  background: var(--image-placeholder);
 }
 
 .photo-card__media::before {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: linear-gradient(100deg, #ded8ce 20%, #eee9df 42%, #ded8ce 64%);
+  background: linear-gradient(
+    100deg,
+    var(--skeleton-shadow) 20%,
+    var(--skeleton-light) 42%,
+    var(--skeleton-shadow) 64%
+  );
   background-size: 220% 100%;
   content: '';
   animation: image-skeleton 1.5s ease-in-out infinite;
@@ -649,7 +660,7 @@ a {
 
 .glightbox-clean .gslide-title {
   margin: 0;
-  color: #f7f3eb;
+  color: var(--lightbox-paper);
   font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -743,9 +754,17 @@ a {
     gap: clamp(1.25rem, 6vw, 2rem);
     justify-content: flex-start;
     overflow-x: auto;
-    padding-block: 0.25rem 0.8rem;
+    padding-block: 0 0.35rem;
     font-size: 0.62rem;
     scrollbar-width: none;
+  }
+
+  .editorial-nav a {
+    display: inline-flex;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
   }
 
   .editorial-nav::-webkit-scrollbar {
@@ -753,7 +772,16 @@ a {
   }
 
   .issue-switcher {
+    grid-template-columns: 2.75rem auto 2.75rem;
     grid-row: 3;
+  }
+
+  .issue-switcher__control {
+    display: inline-flex;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
   }
 
   .view-count {
@@ -802,7 +830,7 @@ a {
   }
 
   .editorial-page__hero h1 {
-    font-size: clamp(3.25rem, 14.5vw, 4.5rem);
+    font-size: clamp(2.5rem, 14vw, 4.5rem);
     line-height: 0.82;
   }
 
@@ -910,7 +938,10 @@ a {
   }
 
   .photo-card img,
-  .photo-card__media::before {
+  .photo-card__media::before,
+  .collection-card__media img,
+  .editorial-nav a::after,
+  .gallery-grid.is-arranged {
     transition: none;
     animation: none;
   }

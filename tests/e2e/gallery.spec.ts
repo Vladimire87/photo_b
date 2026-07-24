@@ -215,10 +215,37 @@ test('renders the typographic about page without requesting gallery photos', asy
   expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport + 1);
 });
 
+test('keeps editorial navigation and long titles usable at 320px', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await mockImages(page);
+  await page.goto('/?view=collections');
+
+  const metrics = await page.evaluate(() => {
+    const title = document.querySelector<HTMLElement>('#collections-title')!;
+    const navigationLinks = [...document.querySelectorAll<HTMLElement>('.editorial-nav a')];
+
+    return {
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+      titleClientWidth: title.clientWidth,
+      titleScrollWidth: title.scrollWidth,
+      navigationTargets: navigationLinks.map((link) => ({
+        width: link.getBoundingClientRect().width,
+        height: link.getBoundingClientRect().height,
+      })),
+    };
+  });
+
+  expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+  expect(metrics.titleScrollWidth).toBeLessThanOrEqual(metrics.titleClientWidth + 1);
+  expect(metrics.navigationTargets.every(({ width, height }) => width >= 44 && height >= 44)).toBe(true);
+});
+
 test('opens and closes the touch-friendly lightbox', async ({ page }) => {
   await mockImages(page);
   await page.goto('/');
-  await page.locator('.photo-card__media').first().click();
+  const trigger = page.locator('.photo-card__media').first();
+  await trigger.click();
   const photoCount = await page.locator('.photo-card').count();
 
   await expect(page.locator('.glightbox-container')).toBeVisible();
@@ -226,6 +253,8 @@ test('opens and closes the touch-friendly lightbox', async ({ page }) => {
   await expect(page.locator('#view-count')).toHaveText(`VIEW 02 / ${String(photoCount).padStart(2, '0')}`);
   await page.keyboard.press('Escape');
   await expect(page.locator('.glightbox-container')).toBeHidden();
+  await expect(page.locator('#view-count')).toHaveText(`VIEW 02 / ${String(photoCount).padStart(2, '0')}`);
+  await expect(trigger).toBeFocused();
 });
 
 test('keeps the layout stable when an external image fails', async ({ page }) => {

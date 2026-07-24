@@ -4,3 +4,13 @@ playwright-report/
 test-results/
 tmp/
 .DS_Store
+
+# Local Codex skills and lifecycle hooks
+.agents/
+.codex/
+
+# Impeccable machine-local state
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+.impeccable/hook.pending.json
+.impeccable/live/

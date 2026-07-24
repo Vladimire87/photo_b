@@ -90,6 +90,8 @@ const aboutLink = getRequiredElement<HTMLAnchorElement>('#about-link');
 
 const parsed = parsePhotoEntries(photoSource);
 let layoutFrame: number | undefined;
+let lastViewedPhotoIndex = 0;
+let lastOpenedPhotoLink: HTMLAnchorElement | null = null;
 const lazyImageObserver = 'IntersectionObserver' in window
   ? new IntersectionObserver(
       (entries, observer) => {
@@ -259,7 +261,9 @@ function createCollectionCard(
   if (cover) {
     const image = document.createElement('img');
     image.src = cover.url;
-    image.alt = `Cover of issue ${formatPhotoNumber(issue.number)}, ${issue.year}`;
+    image.alt = cover.caption
+      ? `${cover.caption}, cover of issue ${formatPhotoNumber(issue.number)}, ${issue.year}`
+      : `Cover of issue ${formatPhotoNumber(issue.number)}, ${issue.year}`;
     image.loading = index === 0 ? 'eager' : 'lazy';
     image.decoding = 'async';
 
@@ -317,7 +321,7 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
   link.dataset.title = photo.caption ? `${number} — ${photo.caption}` : `Photo ${number}`;
   link.setAttribute('aria-label', `Open photo ${number} in full-screen gallery`);
 
-  image.alt = `PHOTO B gallery photograph ${number}`;
+  image.alt = photo.caption || `PHOTO B gallery photograph ${number}`;
   image.loading = index < 2 ? 'eager' : 'lazy';
   image.decoding = 'async';
 
@@ -346,6 +350,15 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
 
   image.addEventListener('load', markLoaded, { once: true });
   image.addEventListener('error', markFailed, { once: true });
+  link.addEventListener('click', () => {
+    if (!link.hasAttribute('href')) {
+      return;
+    }
+
+    lastViewedPhotoIndex = index;
+    lastOpenedPhotoLink = link;
+    updateViewCount(index + 1, parsed.photos.length);
+  });
 
   if (image.getAttribute('src') && image.complete) {
     if (image.naturalWidth > 0) {
@@ -422,9 +435,12 @@ if (pageView === 'collections') {
   });
 
   lightbox.on('slide_changed', () => {
-    const activeIndex = lightbox.getActiveSlideIndex() ?? 0;
-    updateViewCount(activeIndex + 1, parsed.photos.length);
+    lastViewedPhotoIndex = lightbox.getActiveSlideIndex() ?? lastViewedPhotoIndex;
+    updateViewCount(lastViewedPhotoIndex + 1, parsed.photos.length);
   });
 
-  lightbox.on('close', () => updateViewCount(1, parsed.photos.length));
+  lightbox.on('close', () => {
+    updateViewCount(lastViewedPhotoIndex + 1, parsed.photos.length);
+    lastOpenedPhotoLink?.focus({ preventScroll: true });
+  });
 }
