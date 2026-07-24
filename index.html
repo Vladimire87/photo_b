@@ -1,4 +1,11 @@
 <!doctype html>
+<!--
+  THESIS: PHOTO B is a midnight screening, not a paper magazine or image feed.
+  OWN-WORLD: Cobalt room, black apertures, projector-yellow signals, square program frames.
+  STORY: Enter the current issue, move through held photographic beats, revisit past programs.
+  FIRST VIEWPORT: Modular program header; compact context panel left; dominant first photograph right.
+  FORM: Program + Projection, first-ranked staging, direction seed 98dea9af.
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -24,12 +31,12 @@
     <meta name="twitter:description" content="A personal collection of photos I like." />
     <meta name="twitter:image" content="https://photob.pages.dev/assets/photo-b-og.png" />
     <meta name="twitter:image:alt" content="PHOTO B — Photos I Like" />
-    <meta name="theme-color" content="#f4f0e8" />
+    <meta name="theme-color" content="#081a40" />
     <link rel="icon" type="image/png" href="/assets/photo-b-mark.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo+Narrow:wght@400;500;600;700&family=Spline+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <title>PHOTO B — Photos I Like</title>
@@ -42,34 +49,45 @@
       </a>
 
       <nav class="editorial-nav" aria-label="Primary navigation">
-        <a id="latest-link" href="./">LATEST</a>
-        <a id="collections-link" href="?view=collections">COLLECTIONS</a>
-        <a id="about-link" href="?view=about">ABOUT</a>
+        <a id="latest-link" href="./">Latest</a>
+        <a id="collections-link" href="?view=collections">Collections</a>
+        <a id="about-link" href="?view=about">About</a>
       </nav>
 
       <nav class="issue issue-switcher" aria-label="Issue navigation">
-        <a id="previous-issue" class="issue-switcher__control" rel="prev">PREV</a>
+        <a id="previous-issue" class="issue-switcher__control" rel="prev">Previous</a>
         <span id="issue-label">
-          ISSUE <span id="issue-number">01</span> <span aria-hidden="true">—</span>
+          Issue <span id="issue-number">01</span> <span aria-hidden="true">/</span>
           <span id="issue-year">2026</span>
         </span>
-        <a id="next-issue" class="issue-switcher__control" rel="next">NEXT</a>
+        <a id="next-issue" class="issue-switcher__control" rel="next">Next</a>
       </nav>
 
       <div id="view-status" class="view-count" aria-live="polite">
         <span class="view-count__dot" aria-hidden="true"></span>
-        <span id="view-count">VIEW 01 / 00</span>
+        <span id="view-count">Photo 01 / 00</span>
       </div>
     </header>
 
     <main id="top">
       <div id="gallery-page">
         <section class="hero" aria-labelledby="page-title">
-          <h1 id="page-title">The ones I keep</h1>
+          <p class="hero__cue">
+            <span class="hero__cue-dot" aria-hidden="true"></span>
+            Now screening
+          </p>
+          <h1 id="page-title">The ones<br />I keep</h1>
           <p class="hero__note">
-            <span>Personal collection</span>
+            A personal sequence of photographs, released in numbered issues.
+          </p>
+          <p class="hero__program">
+            <span>Latest issue</span>
             <span id="hero-year">2026</span>
           </p>
+          <a class="hero__entry" href="#gallery">
+            Enter issue
+            <span aria-hidden="true">↓</span>
+          </a>
         </section>
 
         <section class="gallery-section" aria-label="Photo collection">
@@ -86,7 +104,7 @@
         <header class="editorial-page__hero">
           <h1 id="collections-title">Collections</h1>
           <p class="editorial-page__intro">
-            Photos are grouped into separate issues. The newest one appears first.
+            Every issue is a separate screening. The newest program appears first.
           </p>
         </header>
         <div id="collections-grid" class="collections-grid"></div>

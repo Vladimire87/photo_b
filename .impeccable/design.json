@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-24T17:35:00+03:00",
+  "title": "Design System: PHOTO B",
+  "extensions": {
+    "colorMeta": {
+      "midnight-cobalt": {
+        "role": "primary",
+        "displayName": "Midnight Cobalt",
+        "canonical": "#081A40",
+        "tonalRamp": ["#020817", "#04102A", "#081A40", "#153060", "#2F4D7A", "#61759A", "#A9B5CC", "#EEF1F6"]
+      },
+      "booth-black": {
+        "role": "neutral",
+        "displayName": "Booth Black",
+        "canonical": "#050A12",
+        "tonalRamp": ["#020305", "#050A12", "#101A28", "#253142", "#485466", "#77818E", "#B5BBC3", "#F0F1F3"]
+      },
+      "projector-yellow": {
+        "role": "secondary",
+        "displayName": "Projector Yellow",
+        "canonical": "#FFD84A",
+        "tonalRamp": ["#2A2100", "#594500", "#8B6C00", "#BE9800", "#EFC52A", "#FFD84A", "#FFE98F", "#FFF9DD"]
+      },
+      "screen-white": {
+        "role": "neutral",
+        "displayName": "Screen White",
+        "canonical": "#F4F3ED",
+        "tonalRamp": ["#24231F", "#474641", "#6D6B65", "#92908A", "#B8B6B0", "#D8D6D0", "#F4F3ED", "#FFFEFA"]
+      },
+      "reel-blue": {
+        "role": "tertiary",
+        "displayName": "Reel Blue",
+        "canonical": "#91A6CA",
+        "tonalRamp": ["#111B2E", "#253655", "#40577C", "#60789F", "#91A6CA", "#B1C0DA", "#D2DBEA", "#F2F5FA"]
+      },
+      "frame-line": {
+        "role": "neutral",
+        "displayName": "Frame Line",
+        "canonical": "rgba(145, 166, 202, 0.42)",
+        "tonalRamp": ["#111827", "#26354E", "#425674", "#667B9B", "#91A6CA", "#B5C2D9", "#D8DFEB", "#F4F6FA"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Program Display",
+        "purpose": "One decisive title per surface."
+      },
+      "body": {
+        "displayName": "Screening Notes",
+        "purpose": "Readable context and curator copy."
+      },
+      "label": {
+        "displayName": "Program Notation",
+        "purpose": "Issue, photo, state, and navigation labels."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "projector-gate",
+        "value": "900ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The first loaded photograph opens horizontally like a projector gate."
+      },
+      {
+        "name": "state-change",
+        "value": "180ms ease",
+        "purpose": "Navigation and cue-state color changes."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stage-compact",
+        "value": "1100px"
+      },
+      {
+        "name": "mobile",
+        "value": "680px"
+      },
+      {
+        "name": "short-screen",
+        "value": "650px height"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Entry Control",
+      "kind": "button",
+      "refersTo": "entry-control",
+      "description": "Projector-yellow action that advances from program context into the issue.",
+      "html": "<a class=\"ds-entry\" href=\"#\">ENTER ISSUE <span aria-hidden=\"true\">↓</span></a>",
+      "css": ".ds-entry { display:flex; min-height:56px; align-items:center; justify-content:space-between; padding:12px 14px; color:#050A12; background:#FFD84A; font:700 13px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.06em; text-decoration:none; } .ds-entry:hover { background:#F4F3ED; } .ds-entry:focus-visible { outline:3px solid #FFD84A; outline-offset:3px; }"
+    },
+    {
+      "name": "Primary Navigation",
+      "kind": "nav",
+      "description": "Three adjacent screening-program links with one active cue.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-active\" href=\"#\">LATEST</a><a href=\"#\">COLLECTIONS</a><a href=\"#\">ABOUT</a></nav>",
+      "css": ".ds-nav { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid rgba(145,166,202,.42); background:#081A40; } .ds-nav a { min-height:56px; display:grid; place-items:center; color:#F4F3ED; border-left:1px solid rgba(145,166,202,.42); font:600 13px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.045em; text-decoration:none; } .ds-nav a:first-child { border-left:0; } .ds-nav a:hover,.ds-nav .ds-nav-active { color:#FFD84A; box-shadow:inset 0 -4px #FFD84A; } .ds-nav a:focus-visible { outline:3px solid #FFD84A; outline-offset:-3px; }"
+    },
+    {
+      "name": "Program Panel",
+      "kind": "custom",
+      "refersTo": "program-frame",
+      "description": "Opening context panel for the current screening.",
+      "html": "<section class=\"ds-program\"><span class=\"ds-cue\">NOW SCREENING</span><h2>THE ONES<br>I KEEP</h2><p>A personal sequence of photographs.</p></section>",
+      "css": ".ds-program { width:320px; padding:28px; color:#F4F3ED; background:#081A40; border:1px solid rgba(145,166,202,.42); } .ds-cue { color:#91A6CA; font:600 12px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.08em; } .ds-program h2 { margin:56px 0 28px; font:400 56px/.86 'Archivo Black',Arial Black,sans-serif; letter-spacing:-.04em; } .ds-program p { color:#91A6CA; font:400 15px/1.6 'Spline Sans',Arial,sans-serif; }"
+    },
+    {
+      "name": "Photographic Frame",
+      "kind": "card",
+      "description": "Square-edged black aperture that preserves the photograph's natural ratio.",
+      "html": "<figure class=\"ds-frame\"><div class=\"ds-aperture\">PHOTOGRAPH</div><figcaption><strong>01</strong><span>FRAME CAPTION</span></figcaption></figure>",
+      "css": ".ds-frame { margin:0; color:#91A6CA; background:#081A40; font:600 12px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.045em; } .ds-aperture { aspect-ratio:4/3; display:grid; place-items:center; color:#91A6CA; background:#050A12; border:1px solid rgba(145,166,202,.42); } .ds-frame figcaption { display:flex; gap:12px; padding-top:10px; border-top:1px solid rgba(145,166,202,.42); } .ds-frame strong { color:#FFD84A; } .ds-frame:focus-within { outline:3px solid #FFD84A; }"
+    },
+    {
+      "name": "Current Issue Marker",
+      "kind": "chip",
+      "description": "Compact rectangular state label used only for the latest program.",
+      "html": "<span class=\"ds-latest\">LATEST</span>",
+      "css": ".ds-latest { display:inline-block; padding:8px 11px; color:#050A12; background:#FFD84A; font:700 12px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.05em; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Midnight Cinémathèque",
+    "overview": "PHOTO B behaves like a late repertory screening rather than a magazine or social feed. Photographs are projected frames; issues are programs; navigation is the quiet apparatus that controls the sequence.",
+    "keyCharacteristics": [
+      "Drenched midnight-cobalt fields with one projector-yellow signal color.",
+      "Square, frame-like surfaces with no ornamental radius.",
+      "Condensed program typography for titles and calm grotesk text for reading.",
+      "Large photographic beats separated by compact issue notation.",
+      "Motion behaves like a projector gate: reveal, hold, advance."
+    ],
+    "rules": [
+      {
+        "name": "The Signal Rule",
+        "body": "Projector Yellow communicates selection, focus, or sequence; it is never scattered as decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Program Rule",
+        "body": "Large display type states the current viewing context once; compact labels carry all repeated issue and image notation.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do let one photograph dominate the opening viewport.",
+      "Do use issue numbers and view position as functional wayfinding.",
+      "Do keep transition timing deliberate and reduced-motion safe.",
+      "Do preserve clear focus states and 44px mobile targets."
+    ],
+    "donts": [
+      "Don't use warm cream paper, editorial serifs, or italic display accents.",
+      "Don't use rounded cards, pills, glass, glow borders, or decorative gradients.",
+      "Don't turn every label into uppercase microcopy; reserve it for program notation.",
+      "Don't crop photographs merely to regularize the grid."
+    ]
+  }
+}

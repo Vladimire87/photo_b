@@ -162,7 +162,7 @@ if (pageView === 'collections') {
 parsed.warnings.forEach((warning) => console.warn(`[PHOTO B] ${warning}`));
 
 function updateViewCount(current: number, total: number): void {
-  viewCount.textContent = `VIEW ${formatPhotoNumber(current)} / ${formatPhotoNumber(total)}`;
+  viewCount.textContent = `PHOTO ${formatPhotoNumber(current)} / ${formatPhotoNumber(total)}`;
 }
 
 function layoutGallery(): void {

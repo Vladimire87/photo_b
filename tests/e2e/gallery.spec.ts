@@ -43,11 +43,11 @@ test('renders the complete editorial gallery without horizontal overflow', async
   await mockImages(page);
   await page.goto('/');
 
-  await expect(page.getByRole('heading', { name: 'The ones I keep' })).toBeVisible();
-  await expect(page.locator('#issue-label')).toContainText('ISSUE 03 — 2026');
+  await expect(page.getByRole('heading', { name: /the ones i keep/i })).toBeVisible();
+  await expect(page.locator('#issue-label')).toContainText('Issue 01');
   const photoCount = await page.locator('.photo-card').count();
   expect(photoCount).toBeGreaterThan(0);
-  await expect(page.locator('#view-count')).toHaveText(`VIEW 01 / ${String(photoCount).padStart(2, '0')}`);
+  await expect(page.locator('#view-count')).toHaveText(`PHOTO 01 / ${String(photoCount).padStart(2, '0')}`);
   await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
 
   expect(await page.locator('.photo-card img').nth(0).getAttribute('loading')).toBe('eager');
@@ -68,35 +68,24 @@ test('renders the complete editorial gallery without horizontal overflow', async
   expect(galleryLayout.height).toBeGreaterThan(0);
   expect(galleryLayout.firstCardPosition).toBe(page.viewportSize()!.width <= 680 ? 'static' : 'absolute');
 
-  if (page.viewportSize()!.width > 1100 && photoCount >= 3) {
-    const firstRow = await page.locator('.photo-card').evaluateAll((cards) =>
-      cards.slice(0, 3).map((card) => {
-        const bounds = card.getBoundingClientRect();
-        return { x: Math.round(bounds.x), y: Math.round(bounds.y), width: Math.round(bounds.width) };
-      }),
-    );
+  if (page.viewportSize()!.width > 1100 && photoCount >= 2) {
+    const composition = await page.evaluate(() => {
+      const hero = document.querySelector('.hero')!.getBoundingClientRect();
+      const first = document.querySelector('.photo-card')!.getBoundingClientRect();
+      const second = document.querySelectorAll('.photo-card')[1].getBoundingClientRect();
 
-    expect(new Set(firstRow.map(({ x }) => x)).size).toBe(3);
-    expect(new Set(firstRow.map(({ y }) => y)).size).toBe(1);
-    expect(new Set(firstRow.map(({ width }) => width)).size).toBe(1);
+      return {
+        heroRight: Math.round(hero.right),
+        firstLeft: Math.round(first.left),
+        heroWidth: Math.round(hero.width),
+        firstWidth: Math.round(first.width),
+        secondWidth: Math.round(second.width),
+      };
+    });
 
-    if (photoCount >= 4) {
-      const captionClearance = await page.locator('.photo-card').evaluateAll((cards) => {
-        const bounds = cards.map((card) => card.getBoundingClientRect());
-        const gaps = bounds.flatMap((card, index) => {
-          const nextCard = bounds
-            .filter((_, candidateIndex) => candidateIndex !== index)
-            .filter((candidate) => Math.abs(candidate.x - card.x) < 1 && candidate.top >= card.bottom)
-            .sort((a, b) => a.top - b.top)[0];
-
-          return nextCard ? [nextCard.top - card.bottom] : [];
-        });
-
-        return Math.min(...gaps);
-      });
-
-      expect(captionClearance).toBeGreaterThanOrEqual(30);
-    }
+    expect(composition.firstLeft).toBeGreaterThan(composition.heroRight);
+    expect(composition.firstWidth).toBeGreaterThan(composition.heroWidth * 2);
+    expect(composition.secondWidth).toBeLessThan(composition.firstWidth);
   }
 
   const logoAlignment = await page.evaluate(() => {
@@ -141,35 +130,31 @@ test('does not request distant photos until they approach the viewport', async (
   await expect(lastImage.locator('..').locator('..')).toHaveClass(/is-loaded/);
 });
 
-test('opens the latest issue and navigates between stable issue URLs', async ({ page }) => {
+test('opens the latest issue at its stable URL and disables missing neighbors', async ({ page }) => {
   await mockImages(page);
   await page.goto('/');
 
-  await expect(page).toHaveTitle('PHOTO B — Issue 03 / 2026');
-  await expect(page.locator('#issue-label')).toContainText('ISSUE 03 — 2026');
-  await expect(page.locator('.photo-card')).toHaveCount(6);
+  await expect(page).toHaveTitle('PHOTO B — Issue 01 / 2026');
+  await expect(page.locator('#issue-label')).toContainText('Issue 01');
+  await expect(page.locator('.photo-card')).toHaveCount(36);
+  await expect(page.locator('#previous-issue')).toHaveAttribute('aria-disabled', 'true');
   await expect(page.locator('#next-issue')).toHaveAttribute('aria-disabled', 'true');
 
-  await page.locator('#previous-issue').click();
-  await expect(page).toHaveURL(/\?issue=2026-02$/);
-  await expect(page.locator('#issue-label')).toContainText('ISSUE 02 — 2026');
-  await expect(page.locator('.photo-card')).toHaveCount(6);
-
-  await page.locator('#previous-issue').click();
+  await page.goto('/?issue=2026-01');
   await expect(page).toHaveURL(/\?issue=2026-01$/);
-  await expect(page.locator('#issue-label')).toContainText('ISSUE 01 — 2026');
-  await expect(page.locator('.photo-card')).toHaveCount(19);
-  await expect(page.locator('#previous-issue')).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.locator('#issue-label')).toContainText('Issue 01');
+  await expect(page.locator('.photo-card')).toHaveCount(36);
 });
 
-test('requests photographs only from the selected issue', async ({ page }) => {
+test('falls back to the latest issue when an unknown issue is requested', async ({ page }) => {
   const requestedImages: string[] = [];
   await mockImages(page, (url) => requestedImages.push(url));
-  await page.goto('/?issue=2026-02');
+  await page.goto('/?issue=2026-99');
   await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
 
+  await expect(page).toHaveTitle('PHOTO B — Issue 01 / 2026');
+  await expect(page.locator('#issue-label')).toContainText('Issue 01');
   expect(requestedImages.length).toBeGreaterThan(0);
-  expect(requestedImages.every((url) => url.includes('photo-b-2026-02'))).toBe(true);
 });
 
 test('renders the collections archive and opens an issue', async ({ page }) => {
@@ -177,10 +162,10 @@ test('renders the collections archive and opens an issue', async ({ page }) => {
   await page.goto('/?view=collections');
 
   await expect(page).toHaveTitle('PHOTO B — Collections');
-  await expect(page.getByRole('heading', { name: 'Collections' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /collections/i })).toBeVisible();
   await expect(page.locator('#collections-link')).toHaveAttribute('aria-current', 'page');
-  await expect(page.locator('.collection-card')).toHaveCount(3);
-  await expect(page.locator('.collection-card').first()).toContainText('ISSUE 03 — 2026');
+  await expect(page.locator('.collection-card')).toHaveCount(1);
+  await expect(page.locator('.collection-card').first()).toContainText('ISSUE 01 — 2026');
   await expect(page.locator('.collection-card').first()).toContainText('LATEST');
   await expect(page.locator('#view-status')).toBeHidden();
 
@@ -190,9 +175,9 @@ test('renders the collections archive and opens an issue', async ({ page }) => {
   }));
   expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport + 1);
 
-  await page.locator('.collection-card__link').nth(1).click();
-  await expect(page).toHaveURL(/\?issue=2026-02$/);
-  await expect(page.locator('#issue-label')).toContainText('ISSUE 02 — 2026');
+  await page.locator('.collection-card__link').click();
+  await expect(page).toHaveURL(/\?issue=2026-01$/);
+  await expect(page.locator('#issue-label')).toContainText('Issue 01');
 });
 
 test('renders the typographic about page without requesting gallery photos', async ({ page }) => {
@@ -201,7 +186,7 @@ test('renders the typographic about page without requesting gallery photos', asy
   await page.goto('/?view=about');
 
   await expect(page).toHaveTitle('PHOTO B — About');
-  await expect(page.getByRole('heading', { name: 'Photos I like.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /photos i like/i })).toBeVisible();
   await expect(page.locator('.about-page__lead')).toContainText('simply photos I like');
   await expect(page.locator('#about-link')).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('#view-status')).toBeHidden();
@@ -250,10 +235,10 @@ test('opens and closes the touch-friendly lightbox', async ({ page }) => {
 
   await expect(page.locator('.glightbox-container')).toBeVisible();
   await page.keyboard.press('ArrowRight');
-  await expect(page.locator('#view-count')).toHaveText(`VIEW 02 / ${String(photoCount).padStart(2, '0')}`);
+  await expect(page.locator('#view-count')).toHaveText(`PHOTO 02 / ${String(photoCount).padStart(2, '0')}`);
   await page.keyboard.press('Escape');
   await expect(page.locator('.glightbox-container')).toBeHidden();
-  await expect(page.locator('#view-count')).toHaveText(`VIEW 02 / ${String(photoCount).padStart(2, '0')}`);
+  await expect(page.locator('#view-count')).toHaveText(`PHOTO 02 / ${String(photoCount).padStart(2, '0')}`);
   await expect(trigger).toBeFocused();
 });
 

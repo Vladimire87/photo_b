@@ -9,8 +9,9 @@ tmp/
 .agents/
 .codex/
 
-# Impeccable machine-local state
-.impeccable/config.local.json
-.impeccable/hook.cache.json
-.impeccable/hook.pending.json
-.impeccable/live/
+# Impeccable: ignore local state, keep durable design documentation
+.impeccable/*
+!.impeccable/design.json
+!.impeccable/surfaces/
+.impeccable/surfaces/*
+!.impeccable/surfaces/*.md
