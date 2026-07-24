@@ -43,7 +43,7 @@ test('renders the complete editorial gallery without horizontal overflow', async
   await mockImages(page);
   await page.goto('/');
 
-  await expect(page.getByRole('heading', { name: 'THE ONES I KEEP' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'The ones I keep' })).toBeVisible();
   await expect(page.locator('#issue-label')).toContainText('ISSUE 03 — 2026');
   const photoCount = await page.locator('.photo-card').count();
   expect(photoCount).toBeGreaterThan(0);
@@ -177,7 +177,7 @@ test('renders the collections archive and opens an issue', async ({ page }) => {
   await page.goto('/?view=collections');
 
   await expect(page).toHaveTitle('PHOTO B — Collections');
-  await expect(page.getByRole('heading', { name: 'COLLECTIONS' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Collections' })).toBeVisible();
   await expect(page.locator('#collections-link')).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('.collection-card')).toHaveCount(3);
   await expect(page.locator('.collection-card').first()).toContainText('ISSUE 03 — 2026');
@@ -201,7 +201,7 @@ test('renders the typographic about page without requesting gallery photos', asy
   await page.goto('/?view=about');
 
   await expect(page).toHaveTitle('PHOTO B — About');
-  await expect(page.getByRole('heading', { name: 'PHOTOS I LIKE.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Photos I like.' })).toBeVisible();
   await expect(page.locator('.about-page__lead')).toContainText('simply photos I like');
   await expect(page.locator('#about-link')).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('#view-status')).toBeHidden();

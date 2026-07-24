@@ -83,7 +83,6 @@ const galleryPage = getRequiredElement<HTMLElement>('#gallery-page');
 const collectionsPage = getRequiredElement<HTMLElement>('#collections-page');
 const collectionsGrid = getRequiredElement<HTMLElement>('#collections-grid');
 const aboutPage = getRequiredElement<HTMLElement>('#about-page');
-const collectionsYear = getRequiredElement<HTMLElement>('#collections-year');
 const latestLink = getRequiredElement<HTMLAnchorElement>('#latest-link');
 const collectionsLink = getRequiredElement<HTMLAnchorElement>('#collections-link');
 const aboutLink = getRequiredElement<HTMLAnchorElement>('#about-link');
@@ -139,7 +138,6 @@ function setActiveNavigation(link: HTMLAnchorElement): void {
 issueNumber.textContent = formatPhotoNumber(activeIssue.number);
 issueYear.textContent = String(activeIssue.year);
 heroYear.textContent = String(activeIssue.year);
-collectionsYear.textContent = String(issues.at(-1)?.year ?? activeIssue.year);
 configureIssueLink(previousIssueLink, issues[activeIssueIndex - 1], 'Previous');
 configureIssueLink(nextIssueLink, issues[activeIssueIndex + 1], 'Next');
 
