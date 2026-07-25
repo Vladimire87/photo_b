@@ -50,8 +50,7 @@ img {
 }
 
 .editorial-nav a,
-.issue-switcher a,
-.hero__entry {
+.issue-switcher a {
   text-decoration: none;
 }
 
@@ -233,7 +232,6 @@ img {
 .brand:focus-visible,
 .editorial-nav a:focus-visible,
 .issue-switcher__control:focus-visible,
-.hero__entry:focus-visible,
 .collection-card__link:focus-visible,
 .photo-card__media:focus-visible {
   position: relative;
@@ -328,31 +326,6 @@ img {
   color: var(--screen);
 }
 
-.hero__entry {
-  display: flex;
-  min-height: 3.5rem;
-  align-items: center;
-  justify-content: space-between;
-  margin: 1rem -0.75rem -0.75rem;
-  padding: 0.8rem 0.9rem;
-  color: var(--aperture);
-  background: var(--signal);
-  font-family: 'Archivo Narrow', Arial Narrow, sans-serif;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  transition: background-color 180ms ease;
-}
-
-.hero__entry:hover {
-  background: var(--screen);
-}
-
-.hero__entry span {
-  font-size: 1.15rem;
-}
-
 .gallery-section {
   grid-column: 4 / -1;
   min-width: 0;
@@ -411,7 +384,7 @@ img {
   opacity: 0;
   object-fit: cover;
   transform: scale(1.008);
-  transition: opacity 420ms ease, filter 320ms ease, transform 700ms var(--ease-gate);
+  transition: opacity 420ms ease;
 }
 
 .photo-card.is-loaded img {
@@ -422,15 +395,6 @@ img {
 .photo-card.is-loaded .photo-card__media::before {
   animation: none;
   opacity: 0;
-}
-
-.photo-card:first-child.is-loaded .photo-card__media {
-  animation: open-projector-gate 900ms var(--ease-gate) both;
-}
-
-.photo-card__media:hover img {
-  filter: brightness(1.08);
-  transform: scale(1.006);
 }
 
 .photo-card__meta {
@@ -556,7 +520,7 @@ img {
   height: 100%;
   opacity: 0;
   object-fit: contain;
-  transition: opacity 420ms ease, filter 320ms ease, transform 700ms var(--ease-gate);
+  transition: opacity 420ms ease;
 }
 
 .collection-card.is-loaded img {
@@ -607,11 +571,6 @@ img {
   background: var(--signal);
   font-size: 0.72rem;
   font-weight: 700;
-}
-
-.collection-card__link:hover img {
-  filter: brightness(1.08);
-  transform: scale(1.006);
 }
 
 .collection-card__link:hover .collection-card__issue {
@@ -811,16 +770,6 @@ img {
 
   to {
     background-color: #102653;
-  }
-}
-
-@keyframes open-projector-gate {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-
-  to {
-    clip-path: inset(0);
   }
 }
 
@@ -1115,12 +1064,6 @@ img {
 }
 
 @media (hover: none) {
-  .photo-card__media:hover img,
-  .collection-card__link:hover img {
-    filter: none;
-    transform: scale(1);
-  }
-
   .photo-card__media:active img {
     filter: brightness(0.9);
   }
@@ -1147,14 +1090,9 @@ img {
   }
 
   .hero__program {
-    margin-top: 1rem;
     padding-block: 0.65rem;
   }
 
-  .hero__entry {
-    min-height: 3rem;
-    margin-top: 0.75rem;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1165,8 +1103,7 @@ img {
   .photo-card img,
   .photo-card__media::before,
   .collection-card__media img,
-  .editorial-nav a::after,
-  .photo-card:first-child.is-loaded .photo-card__media {
+  .editorial-nav a::after {
     transition: none;
     animation: none;
   }

@@ -208,6 +208,47 @@ test('renders the collections archive and opens an issue', async ({ page }) => {
   await expect(page.locator('#issue-label')).toContainText('Issue 01');
 });
 
+test('keeps gallery and collection images still on hover', async ({ page }) => {
+  await mockImages(page);
+  await page.goto('/');
+
+  const galleryImage = page.locator('.photo-card__media img').first();
+  await expect(galleryImage.locator('..').locator('..')).toHaveClass(/is-loaded/);
+  const galleryStyleBeforeHover = await galleryImage.evaluate((image) => {
+    const styles = getComputedStyle(image);
+    return { filter: styles.filter, transform: styles.transform };
+  });
+  await galleryImage.locator('..').hover();
+  const galleryStyleAfterHover = await galleryImage.evaluate((image) => {
+    const styles = getComputedStyle(image);
+    return { filter: styles.filter, transform: styles.transform };
+  });
+  expect(galleryStyleAfterHover).toEqual(galleryStyleBeforeHover);
+
+  await page.goto('/?view=collections');
+  const collectionImage = page.locator('.collection-card__media img').first();
+  await expect(page.locator('.collection-card').first()).toHaveClass(/is-loaded/);
+  const collectionStyleBeforeHover = await collectionImage.evaluate((image) => {
+    const styles = getComputedStyle(image);
+    return { filter: styles.filter, transform: styles.transform };
+  });
+  await page.locator('.collection-card__link').first().hover();
+  const collectionStyleAfterHover = await collectionImage.evaluate((image) => {
+    const styles = getComputedStyle(image);
+    return { filter: styles.filter, transform: styles.transform };
+  });
+  expect(collectionStyleAfterHover).toEqual(collectionStyleBeforeHover);
+});
+
+test('loads the first photograph without a sideways reveal', async ({ page }) => {
+  await mockImages(page);
+  await page.goto('/');
+
+  const firstCard = page.locator('.photo-card').first();
+  await expect(firstCard).toHaveClass(/is-loaded/);
+  await expect(firstCard.locator('.photo-card__media')).toHaveCSS('animation-name', 'none');
+});
+
 test('renders the typographic about page without requesting gallery photos', async ({ page }) => {
   const requestedImages: string[] = [];
   await mockImages(page, (url) => requestedImages.push(url));
@@ -252,6 +293,19 @@ test('keeps editorial navigation and long titles usable at 320px', async ({ page
   expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewportWidth + 1);
   expect(metrics.titleScrollWidth).toBeLessThanOrEqual(metrics.titleClientWidth + 1);
   expect(metrics.navigationTargets.every(({ width, height }) => width >= 44 && height >= 44)).toBe(true);
+});
+
+test('flows directly from the issue intro into the gallery on a short mobile screen', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await mockImages(page);
+  await page.goto('/');
+
+  await expect(page.locator('a[href="#gallery"]')).toHaveCount(0);
+
+  const firstPhotoTop = await page.locator('.photo-card').first().evaluate(
+    (card) => card.getBoundingClientRect().top,
+  );
+  expect(firstPhotoTop).toBeLessThan(568);
 });
 
 test('opens and closes the touch-friendly lightbox', async ({ page }) => {
