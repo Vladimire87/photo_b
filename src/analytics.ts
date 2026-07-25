@@ -43,7 +43,10 @@ export function initializeAnalytics(): void {
   ym(counterId, 'init', {
     accurateTrackBounce: true,
     clickmap: true,
+    referrer: document.referrer,
+    ssr: true,
     trackLinks: true,
+    url: window.location.href,
     webvisor: false,
   });
 
@@ -54,7 +57,7 @@ export function initializeAnalytics(): void {
   const script = document.createElement('script');
   script.async = true;
   script.dataset.yandexMetrika = '';
-  script.src = 'https://mc.yandex.ru/metrika/tag.js';
+  script.src = `https://mc.yandex.ru/metrika/tag.js?id=${counterId}`;
   document.head.append(script);
 }
 
