@@ -69,3 +69,10 @@ export function getLayoutVariant(index: number): (typeof LAYOUT_VARIANTS)[number
 export function formatPhotoNumber(value: number): string {
   return String(value).padStart(2, '0');
 }
+
+export function isUsablePhotoDimensions(width: number, height: number): boolean {
+  return Number.isFinite(width)
+    && Number.isFinite(height)
+    && width >= 200
+    && height >= 120;
+}

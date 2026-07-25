@@ -9,7 +9,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
       content="A personal collection of photos I like."
@@ -74,18 +74,18 @@
         <section class="hero" aria-labelledby="page-title">
           <p class="hero__cue">
             <span class="hero__cue-dot" aria-hidden="true"></span>
-            Now screening
+            Issue <span id="hero-issue-number">01</span>
           </p>
-          <h1 id="page-title">The ones<br />I keep</h1>
+          <h1 id="page-title">Photos<br />I keep</h1>
           <p class="hero__note">
-            A personal sequence of photographs, released in numbered issues.
+            A personal selection, published in numbered issues.
           </p>
           <p class="hero__program">
             <span>Latest issue</span>
             <span id="hero-year">2026</span>
           </p>
           <a class="hero__entry" href="#gallery">
-            Enter issue
+            View photographs
             <span aria-hidden="true">↓</span>
           </a>
         </section>
@@ -94,8 +94,8 @@
           <div id="gallery" class="gallery-grid"></div>
           <div id="empty-state" class="empty-state" hidden>
             <span>00</span>
-            <h2>This issue is still empty.</h2>
-            <p>No photographs have been added yet.</p>
+            <h2>No photographs yet.</h2>
+            <p>This issue will appear here once photographs are added.</p>
           </div>
         </section>
       </div>
@@ -104,7 +104,7 @@
         <header class="editorial-page__hero">
           <h1 id="collections-title">Collections</h1>
           <p class="editorial-page__intro">
-            Every issue is a separate screening. The newest program appears first.
+            Browse every issue, newest first.
           </p>
         </header>
         <div id="collections-grid" class="collections-grid"></div>
@@ -112,14 +112,14 @@
 
       <section id="about-page" class="editorial-page about-page" aria-labelledby="about-title" hidden>
         <header class="about-page__hero">
-          <h1 id="about-title">Photos I like.</h1>
+          <h1 id="about-title">A personal collection.</h1>
         </header>
         <div class="about-page__body">
           <p class="about-page__lead">
-            These are simply photos I like. I collect them here so I can come back to them.
+            Photographs I want to return to, gathered in one place.
           </p>
           <p>
-            There is no fixed theme or complicated idea behind it. New photos are added in separate issues.
+            Each issue is a new selection. There is no fixed theme—only images worth keeping.
           </p>
           <div class="about-page__signature" aria-label="Personal collection, since 2026">
             <span>Personal collection</span>
@@ -134,7 +134,7 @@
         <span class="brand__mark" aria-hidden="true"></span>
         <span>PHOTO B</span>
       </span>
-      <span>Selected by B</span>
+      <span>Curated by B</span>
       <span>© 2026</span>
     </footer>
 

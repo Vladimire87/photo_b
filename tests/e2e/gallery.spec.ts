@@ -1,19 +1,28 @@
 import { expect, test, type Page } from '@playwright/test';
 
-const transparentPixel = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+X7i4WQAAAABJRU5ErkJggg==',
-  'base64',
+const galleryImage = Buffer.from(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"></svg>',
+);
+const deletedImagePlaceholder = Buffer.from(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="130" height="60"></svg>',
 );
 
-async function mockImages(page: Page, onImageRequest?: (url: string) => void): Promise<void> {
+async function mockImages(
+  page: Page,
+  onImageRequest?: (url: string) => void,
+  deletedImageUrl?: string,
+): Promise<void> {
   await page.route('https://**/*', async (route) => {
     if (route.request().resourceType() === 'image') {
-      onImageRequest?.(route.request().url());
+      const url = route.request().url();
+      onImageRequest?.(url);
       await route.fulfill({
-        status: 200,
-        contentType: 'image/png',
+        status: deletedImageUrl && url.includes(deletedImageUrl) ? 404 : 200,
+        contentType: 'image/svg+xml',
         headers: { 'cache-control': 'no-store' },
-        body: transparentPixel,
+        body: deletedImageUrl && url.includes(deletedImageUrl)
+          ? deletedImagePlaceholder
+          : galleryImage,
       });
       return;
     }
@@ -43,7 +52,7 @@ test('renders the complete editorial gallery without horizontal overflow', async
   await mockImages(page);
   await page.goto('/');
 
-  await expect(page.getByRole('heading', { name: /the ones i keep/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /photos i keep/i })).toBeVisible();
   await expect(page.locator('#issue-label')).toContainText('Issue 01');
   const photoCount = await page.locator('.photo-card').count();
   expect(photoCount).toBeGreaterThan(0);
@@ -71,21 +80,40 @@ test('renders the complete editorial gallery without horizontal overflow', async
   if (page.viewportSize()!.width > 1100 && photoCount >= 2) {
     const composition = await page.evaluate(() => {
       const hero = document.querySelector('.hero')!.getBoundingClientRect();
-      const first = document.querySelector('.photo-card')!.getBoundingClientRect();
-      const second = document.querySelectorAll('.photo-card')[1].getBoundingClientRect();
+      const gallery = document.querySelector('#gallery')!.getBoundingClientRect();
+      const cards = [...document.querySelectorAll('.photo-card')]
+        .map((card) => card.getBoundingClientRect());
+      const firstRow = cards.filter((card) => Math.abs(card.top - cards[0].top) < 2);
+      const occupiedWidth = firstRow.reduce((total, card) => total + card.width, 0);
 
       return {
         heroRight: Math.round(hero.right),
-        firstLeft: Math.round(first.left),
-        heroWidth: Math.round(hero.width),
-        firstWidth: Math.round(first.width),
-        secondWidth: Math.round(second.width),
+        firstLeft: Math.round(cards[0].left),
+        galleryWidth: Math.round(gallery.width),
+        firstWidth: Math.round(cards[0].width),
+        firstRowCount: firstRow.length,
+        occupiedWidth: Math.round(occupiedWidth),
       };
     });
 
     expect(composition.firstLeft).toBeGreaterThan(composition.heroRight);
-    expect(composition.firstWidth).toBeGreaterThan(composition.heroWidth * 2);
-    expect(composition.secondWidth).toBeLessThan(composition.firstWidth);
+    expect(composition.firstRowCount).toBeGreaterThan(1);
+    expect(composition.firstWidth).toBeGreaterThan(composition.galleryWidth * 0.3);
+    expect(composition.firstWidth).toBeLessThan(composition.galleryWidth * 0.6);
+    expect(composition.occupiedWidth).toBeGreaterThan(composition.galleryWidth * 0.9);
+  } else if (page.viewportSize()!.width <= 680) {
+    const mobileComposition = await page.locator('.photo-card').first().evaluate((card) => {
+      const bounds = card.getBoundingClientRect();
+      return {
+        top: bounds.top,
+        width: bounds.width,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+      };
+    });
+
+    expect(mobileComposition.width).toBeGreaterThanOrEqual(mobileComposition.viewportWidth - 1);
+    expect(mobileComposition.top).toBeLessThan(mobileComposition.viewportHeight);
   }
 
   const logoAlignment = await page.evaluate(() => {
@@ -136,14 +164,14 @@ test('opens the latest issue at its stable URL and disables missing neighbors', 
 
   await expect(page).toHaveTitle('PHOTO B — Issue 01 / 2026');
   await expect(page.locator('#issue-label')).toContainText('Issue 01');
-  await expect(page.locator('.photo-card')).toHaveCount(36);
+  await expect(page.locator('.photo-card')).toHaveCount(33);
   await expect(page.locator('#previous-issue')).toHaveAttribute('aria-disabled', 'true');
   await expect(page.locator('#next-issue')).toHaveAttribute('aria-disabled', 'true');
 
   await page.goto('/?issue=2026-01');
   await expect(page).toHaveURL(/\?issue=2026-01$/);
   await expect(page.locator('#issue-label')).toContainText('Issue 01');
-  await expect(page.locator('.photo-card')).toHaveCount(36);
+  await expect(page.locator('.photo-card')).toHaveCount(33);
 });
 
 test('falls back to the latest issue when an unknown issue is requested', async ({ page }) => {
@@ -186,8 +214,8 @@ test('renders the typographic about page without requesting gallery photos', asy
   await page.goto('/?view=about');
 
   await expect(page).toHaveTitle('PHOTO B — About');
-  await expect(page.getByRole('heading', { name: /photos i like/i })).toBeVisible();
-  await expect(page.locator('.about-page__lead')).toContainText('simply photos I like');
+  await expect(page.getByRole('heading', { name: /a personal collection/i })).toBeVisible();
+  await expect(page.locator('.about-page__lead')).toContainText('Photographs I want to return to');
   await expect(page.locator('#about-link')).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('#view-status')).toBeHidden();
   await expect(page.locator('.photo-card')).toHaveCount(0);
@@ -234,6 +262,20 @@ test('opens and closes the touch-friendly lightbox', async ({ page }) => {
   const photoCount = await page.locator('.photo-card').count();
 
   await expect(page.locator('.glightbox-container')).toBeVisible();
+  const lightboxBounds = await page.evaluate(() => {
+    const image = document.querySelector<HTMLElement>('.gslide.current .gslide-image img')!;
+    const description = document.querySelector<HTMLElement>('.gslide.current .gslide-description')!;
+    const imageRect = image.getBoundingClientRect();
+    const descriptionRect = description.getBoundingClientRect();
+
+    return {
+      imageTop: imageRect.top,
+      descriptionBottom: descriptionRect.bottom,
+      viewportHeight: window.innerHeight,
+    };
+  });
+  expect(lightboxBounds.imageTop).toBeGreaterThanOrEqual(0);
+  expect(lightboxBounds.descriptionBottom).toBeLessThanOrEqual(lightboxBounds.viewportHeight);
   await page.keyboard.press('ArrowRight');
   await expect(page.locator('#view-count')).toHaveText(`PHOTO 02 / ${String(photoCount).padStart(2, '0')}`);
   await page.keyboard.press('Escape');
@@ -242,15 +284,33 @@ test('opens and closes the touch-friendly lightbox', async ({ page }) => {
   await expect(trigger).toBeFocused();
 });
 
-test('keeps the layout stable when an external image fails', async ({ page }) => {
+test('removes a failed external image and rebuilds the gallery sequence', async ({ page }) => {
   await mockImages(page);
   await page.goto('/');
 
   const firstCard = page.locator('.photo-card').first();
   const photoCount = await page.locator('.photo-card').count();
   await expect(firstCard).toHaveClass(/is-loaded/);
+  const removedPhotoAlt = await firstCard.locator('img').getAttribute('alt');
   await firstCard.locator('img').evaluate((image) => image.dispatchEvent(new Event('error')));
-  await expect(firstCard).toHaveClass(/is-error/);
-  await expect(firstCard.locator('.photo-card__media')).toHaveAttribute('aria-disabled', 'true');
-  await expect(page.locator('.photo-card')).toHaveCount(photoCount);
+  await expect(page.getByAltText(removedPhotoAlt!)).toHaveCount(0);
+  await expect(page.locator('.photo-card')).toHaveCount(photoCount - 1);
+  await expect(page.locator('.photo-card').first().locator('.photo-card__number')).toHaveText('01');
+  await expect(page.locator('#view-count')).toHaveText(
+    `PHOTO 01 / ${String(photoCount - 1).padStart(2, '0')}`,
+  );
+
+  await page.locator('.photo-card__media').first().click();
+  await expect(page.locator('.glightbox-container')).toBeVisible();
+  await expect(page.locator('.glightbox-container .gslide')).toHaveCount(photoCount - 1);
+});
+
+test('removes a deletion placeholder returned as a valid image body', async ({ page }) => {
+  const deletedUrl = 'pbxnq8x2njdh1.jpeg';
+  await mockImages(page, undefined, deletedUrl);
+  await page.goto('/');
+
+  await expect(page.locator(`img[src*="${deletedUrl}"]`)).toHaveCount(0);
+  await expect(page.locator('.photo-card')).toHaveCount(32);
+  await expect(page.locator('#view-count')).toHaveText('PHOTO 01 / 32');
 });

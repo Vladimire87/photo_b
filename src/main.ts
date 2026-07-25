@@ -3,7 +3,7 @@ import 'glightbox/dist/css/glightbox.css';
 import './styles.css';
 import {
   formatPhotoNumber,
-  getLayoutVariant,
+  isUsablePhotoDimensions,
   parsePhotoEntries,
   type PhotoEntry,
 } from './gallery';
@@ -74,6 +74,7 @@ const viewCount = getRequiredElement<HTMLElement>('#view-count');
 const viewStatus = getRequiredElement<HTMLElement>('#view-status');
 const issueNumber = getRequiredElement<HTMLElement>('#issue-number');
 const issueYear = getRequiredElement<HTMLElement>('#issue-year');
+const heroIssueNumber = getRequiredElement<HTMLElement>('#hero-issue-number');
 const heroYear = getRequiredElement<HTMLElement>('#hero-year');
 const previousIssueLink = getRequiredElement<HTMLAnchorElement>('#previous-issue');
 const nextIssueLink = getRequiredElement<HTMLAnchorElement>('#next-issue');
@@ -91,6 +92,8 @@ const parsed = parsePhotoEntries(photoSource);
 let layoutFrame: number | undefined;
 let lastViewedPhotoIndex = 0;
 let lastOpenedPhotoLink: HTMLAnchorElement | null = null;
+let reloadLightbox: (() => void) | undefined;
+let unobservePhotoCard: ((card: HTMLElement) => void) | undefined;
 const lazyImageObserver = 'IntersectionObserver' in window
   ? new IntersectionObserver(
       (entries, observer) => {
@@ -136,6 +139,7 @@ function setActiveNavigation(link: HTMLAnchorElement): void {
 }
 
 issueNumber.textContent = formatPhotoNumber(activeIssue.number);
+heroIssueNumber.textContent = formatPhotoNumber(activeIssue.number);
 issueYear.textContent = String(activeIssue.year);
 heroYear.textContent = String(activeIssue.year);
 configureIssueLink(previousIssueLink, issues[activeIssueIndex - 1], 'Previous');
@@ -181,38 +185,89 @@ function layoutGallery(): void {
   }
 
   const galleryStyles = getComputedStyle(gallery);
-  const columns = window.matchMedia('(max-width: 1100px)').matches ? 6 : 12;
   const columnGap = Number.parseFloat(galleryStyles.columnGap) || 0;
   const rowGap = Number.parseFloat(galleryStyles.rowGap) || 0;
-  const columnWidth = (gallery.clientWidth - columnGap * (columns - 1)) / columns;
-  const columnBottoms = Array<number>(columns).fill(0);
+  const availableWidth = gallery.clientWidth;
+  const targetRowHeight = Math.min(440, Math.max(300, availableWidth * 0.4));
+  let row: HTMLElement[] = [];
+  let aspectSum = 0;
+  let top = 0;
 
-  cards.forEach((card) => {
-    const requestedSpan = Number.parseInt(getComputedStyle(card).getPropertyValue('--card-columns'), 10) || 3;
-    const span = Math.min(requestedSpan, columns);
-    let bestColumn = 0;
-    let bestTop = Number.POSITIVE_INFINITY;
+  const getAspect = (card: HTMLElement): number => {
+    const aspect = Number.parseFloat(card.dataset.photoAspect ?? '');
+    return Number.isFinite(aspect) && aspect > 0 ? aspect : 4 / 5;
+  };
 
-    for (let column = 0; column <= columns - span; column += 1) {
-      const candidateTop = Math.max(...columnBottoms.slice(column, column + span));
-
-      if (candidateTop < bestTop) {
-        bestColumn = column;
-        bestTop = candidateTop;
-      }
+  const placeRow = (shouldFill: boolean): void => {
+    if (row.length === 0) {
+      return;
     }
 
-    const width = columnWidth * span + columnGap * (span - 1);
-    const x = bestColumn * (columnWidth + columnGap);
-    card.style.position = 'absolute';
-    card.style.width = `${width}px`;
-    card.style.transform = `translate3d(${x}px, ${bestTop}px, 0)`;
+    const gapsWidth = columnGap * Math.max(0, row.length - 1);
+    const naturalRowHeight = (availableWidth - gapsWidth) / aspectSum;
+    const rowHeight = shouldFill
+      ? naturalRowHeight
+      : Math.min(targetRowHeight, naturalRowHeight);
+    const rowWidth = rowHeight * aspectSum + gapsWidth;
+    let left = shouldFill ? 0 : Math.max(0, (availableWidth - rowWidth) / 2);
+    let bottom = top;
 
-    const bottom = bestTop + card.getBoundingClientRect().height + rowGap;
-    columnBottoms.fill(bottom, bestColumn, bestColumn + span);
+    row.forEach((card) => {
+      const width = rowHeight * getAspect(card);
+      card.style.position = 'absolute';
+      card.style.width = `${width}px`;
+      card.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+      left += width + columnGap;
+      bottom = Math.max(bottom, top + card.getBoundingClientRect().height);
+    });
+
+    top = bottom + rowGap;
+    row = [];
+    aspectSum = 0;
+  };
+
+  cards.forEach((card) => {
+    const cardAspect = getAspect(card);
+    row.push(card);
+    aspectSum += cardAspect;
+
+    const projectedHeight = (
+      availableWidth - columnGap * Math.max(0, row.length - 1)
+    ) / aspectSum;
+
+    if (projectedHeight <= targetRowHeight) {
+      const previousAspectSum = aspectSum - cardAspect;
+      const previousHeight = row.length > 1
+        ? (
+            availableWidth - columnGap * Math.max(0, row.length - 2)
+          ) / previousAspectSum
+        : Number.POSITIVE_INFINITY;
+
+      if (
+        row.length > 1
+        && Math.abs(previousHeight - targetRowHeight)
+          <= Math.abs(projectedHeight - targetRowHeight)
+      ) {
+        row.pop();
+        aspectSum = previousAspectSum;
+        placeRow(true);
+        row.push(card);
+        aspectSum = cardAspect;
+        return;
+      }
+
+      placeRow(true);
+    }
   });
 
-  gallery.style.height = `${Math.max(...columnBottoms, 0) - rowGap}px`;
+  if (row.length > 0) {
+    const projectedHeight = (
+      availableWidth - columnGap * Math.max(0, row.length - 1)
+    ) / aspectSum;
+    placeRow(row.length > 1 && projectedHeight <= targetRowHeight * 1.16);
+  }
+
+  gallery.style.height = `${Math.max(0, top - rowGap)}px`;
   gallery.classList.add('is-arranged');
 }
 
@@ -222,6 +277,47 @@ function scheduleGalleryLayout(): void {
   }
 
   layoutFrame = window.requestAnimationFrame(layoutGallery);
+}
+
+function refreshPhotoSequence(): void {
+  const cards = [...gallery.querySelectorAll<HTMLElement>('.photo-card')];
+
+  cards.forEach((card, index) => {
+    const number = formatPhotoNumber(index + 1);
+    const caption = card.dataset.caption ?? '';
+    const link = card.querySelector<HTMLAnchorElement>('.photo-card__media');
+    const image = card.querySelector<HTMLImageElement>('img');
+    const numberElement = card.querySelector<HTMLElement>('.photo-card__number');
+
+    card.dataset.photoIndex = String(index);
+
+    if (numberElement) {
+      numberElement.textContent = number;
+    }
+
+    if (link) {
+      link.dataset.title = caption ? `${number} — ${caption}` : `Photo ${number}`;
+      link.setAttribute('aria-label', `Open photo ${number} in full-screen gallery`);
+    }
+
+    if (image) {
+      image.alt = caption || `PHOTO B gallery photograph ${number}`;
+    }
+  });
+
+  if (cards.length === 0) {
+    gallery.hidden = true;
+    emptyState.hidden = false;
+    emptyState.querySelector('h2')!.textContent = 'Photographs unavailable.';
+    emptyState.querySelector('p')!.textContent = 'The image files for this issue could not be loaded.';
+    updateViewCount(0, 0);
+  } else {
+    lastViewedPhotoIndex = Math.min(lastViewedPhotoIndex, cards.length - 1);
+    updateViewCount(lastViewedPhotoIndex + 1, cards.length);
+  }
+
+  reloadLightbox?.();
+  scheduleGalleryLayout();
 }
 
 function createCollectionCard(
@@ -309,8 +405,10 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
   const numberElement = document.createElement('span');
   const ruleElement = document.createElement('span');
 
-  figure.className = `photo-card photo-card--${getLayoutVariant(index)} is-loading`;
+  figure.className = 'photo-card is-loading';
   figure.dataset.photoIndex = String(index);
+  figure.dataset.photoAspect = String(4 / 5);
+  figure.dataset.caption = photo.caption ?? '';
 
   link.className = 'photo-card__media glightbox';
   link.href = photo.url;
@@ -330,19 +428,24 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
     image.dataset.src = photo.url;
   }
 
-  const markLoaded = (): void => {
-    figure.style.setProperty('--photo-aspect', `${image.naturalWidth} / ${image.naturalHeight}`);
-    figure.classList.remove('is-loading');
-    figure.classList.add('is-loaded');
-    scheduleGalleryLayout();
+  const markFailed = (): void => {
+    lazyImageObserver?.unobserve(image);
+    unobservePhotoCard?.(figure);
+    figure.remove();
+    refreshPhotoSequence();
   };
 
-  const markFailed = (): void => {
-    figure.classList.remove('is-loading', 'is-loaded');
-    figure.classList.add('is-error');
-    link.removeAttribute('href');
-    link.setAttribute('aria-disabled', 'true');
-    link.setAttribute('aria-label', `Photo ${number} could not be loaded`);
+  const markLoaded = (): void => {
+    if (!isUsablePhotoDimensions(image.naturalWidth, image.naturalHeight)) {
+      markFailed();
+      return;
+    }
+
+    const aspect = image.naturalWidth / image.naturalHeight;
+    figure.dataset.photoAspect = String(aspect);
+    figure.style.setProperty('--photo-aspect', String(aspect));
+    figure.classList.remove('is-loading');
+    figure.classList.add('is-loaded');
     scheduleGalleryLayout();
   };
 
@@ -353,9 +456,16 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
       return;
     }
 
-    lastViewedPhotoIndex = index;
+    const cards = [...gallery.querySelectorAll<HTMLElement>('.photo-card')];
+    const currentIndex = cards.indexOf(figure);
+
+    if (currentIndex < 0) {
+      return;
+    }
+
+    lastViewedPhotoIndex = currentIndex;
     lastOpenedPhotoLink = link;
-    updateViewCount(index + 1, parsed.photos.length);
+    updateViewCount(currentIndex + 1, cards.length);
   });
 
   if (image.getAttribute('src') && image.complete) {
@@ -413,6 +523,7 @@ if (pageView === 'collections') {
   scheduleGalleryLayout();
 
   const resizeObserver = new ResizeObserver(scheduleGalleryLayout);
+  unobservePhotoCard = (card) => resizeObserver.unobserve(card);
   resizeObserver.observe(gallery);
   gallery.querySelectorAll<HTMLElement>('.photo-card').forEach((card) => resizeObserver.observe(card));
   void document.fonts.ready.then(scheduleGalleryLayout);
@@ -431,14 +542,21 @@ if (pageView === 'collections') {
     closeEffect: 'fade',
     slideEffect: 'slide',
   });
+  reloadLightbox = () => lightbox.reload();
 
   lightbox.on('slide_changed', () => {
     lastViewedPhotoIndex = lightbox.getActiveSlideIndex() ?? lastViewedPhotoIndex;
-    updateViewCount(lastViewedPhotoIndex + 1, parsed.photos.length);
+    updateViewCount(
+      lastViewedPhotoIndex + 1,
+      gallery.querySelectorAll('.photo-card').length,
+    );
   });
 
   lightbox.on('close', () => {
-    updateViewCount(lastViewedPhotoIndex + 1, parsed.photos.length);
+    updateViewCount(
+      lastViewedPhotoIndex + 1,
+      gallery.querySelectorAll('.photo-card').length,
+    );
     lastOpenedPhotoLink?.focus({ preventScroll: true });
   });
 }

@@ -3,6 +3,7 @@ import {
   LAYOUT_VARIANTS,
   formatPhotoNumber,
   getLayoutVariant,
+  isUsablePhotoDimensions,
   parsePhotoEntries,
 } from '../src/gallery';
 
@@ -45,5 +46,13 @@ describe('editorial metadata', () => {
   it('formats photo numbers consistently', () => {
     expect(formatPhotoNumber(1)).toBe('01');
     expect(formatPhotoNumber(12)).toBe('12');
+  });
+});
+
+describe('image validation', () => {
+  it('rejects tiny deletion placeholders while accepting gallery photographs', () => {
+    expect(isUsablePhotoDimensions(130, 60)).toBe(false);
+    expect(isUsablePhotoDimensions(640, 853)).toBe(true);
+    expect(isUsablePhotoDimensions(1080, 720)).toBe(true);
   });
 });
