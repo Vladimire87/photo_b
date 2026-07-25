@@ -33,6 +33,15 @@ npm run dev
 
 Open the URL printed by Vite.
 
+## Analytics
+
+Yandex Metrica counter `111029295` is enabled by default. The tag records normal
+visits and sends each opened photograph as a virtual page view under
+`/photos/YYYY-NN/XX`. This makes the most-viewed photographs available in the
+regular page reports without creating a separate goal.
+
+Set `VITE_YANDEX_METRIKA_ID` only when building for a different counter.
+
 ## Checks and production build
 
 ```bash

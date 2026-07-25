@@ -1,12 +1,15 @@
 import GLightbox from 'glightbox';
 import 'glightbox/dist/css/glightbox.css';
 import './styles.css';
+import { initializeAnalytics, trackPhotoView } from './analytics';
 import {
   formatPhotoNumber,
   isUsablePhotoDimensions,
   parsePhotoEntries,
   type PhotoEntry,
 } from './gallery';
+
+initializeAnalytics();
 
 interface IssueSource {
   slug: string;
@@ -91,6 +94,7 @@ const aboutLink = getRequiredElement<HTMLAnchorElement>('#about-link');
 const parsed = parsePhotoEntries(photoSource);
 let layoutFrame: number | undefined;
 let lastViewedPhotoIndex = 0;
+let lastTrackedPhotoIndex: number | null = null;
 let lastOpenedPhotoLink: HTMLAnchorElement | null = null;
 let reloadLightbox: (() => void) | undefined;
 let unobservePhotoCard: ((card: HTMLElement) => void) | undefined;
@@ -277,6 +281,26 @@ function scheduleGalleryLayout(): void {
   }
 
   layoutFrame = window.requestAnimationFrame(layoutGallery);
+}
+
+function trackVisiblePhoto(index: number): void {
+  if (lastTrackedPhotoIndex === index) {
+    return;
+  }
+
+  const cards = [...gallery.querySelectorAll<HTMLElement>('.photo-card')];
+  const card = cards[index];
+
+  if (!card) {
+    return;
+  }
+
+  trackPhotoView({
+    caption: card.dataset.caption ?? '',
+    issue: activeIssue.slug,
+    photoNumber: index + 1,
+  });
+  lastTrackedPhotoIndex = index;
 }
 
 function refreshPhotoSequence(): void {
@@ -466,6 +490,7 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
     lastViewedPhotoIndex = currentIndex;
     lastOpenedPhotoLink = link;
     updateViewCount(currentIndex + 1, cards.length);
+    trackVisiblePhoto(currentIndex);
   });
 
   if (image.getAttribute('src') && image.complete) {
@@ -550,6 +575,7 @@ if (pageView === 'collections') {
       lastViewedPhotoIndex + 1,
       gallery.querySelectorAll('.photo-card').length,
     );
+    trackVisiblePhoto(lastViewedPhotoIndex);
   });
 
   lightbox.on('close', () => {
@@ -557,6 +583,7 @@ if (pageView === 'collections') {
       lastViewedPhotoIndex + 1,
       gallery.querySelectorAll('.photo-card').length,
     );
+    lastTrackedPhotoIndex = null;
     lastOpenedPhotoLink?.focus({ preventScroll: true });
   });
 }
