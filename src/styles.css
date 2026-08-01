@@ -553,7 +553,7 @@ img {
   align-self: end;
   color: var(--screen);
   font-family: 'Archivo Black', Arial Black, sans-serif;
-  font-size: clamp(2rem, 3.8vw, 4.8rem);
+  font-size: clamp(1.75rem, 3vw, 3.75rem);
   font-weight: 400;
   letter-spacing: -0.035em;
   line-height: 0.9;
@@ -597,7 +597,7 @@ img {
 }
 
 .about-page__hero h1 {
-  max-width: 10ch;
+  max-width: 11ch;
   margin: 0;
   font-family: 'Archivo Black', Arial Black, sans-serif;
   font-size: clamp(4rem, 9vw, 6rem);
@@ -627,6 +627,7 @@ img {
   font-weight: 400;
   letter-spacing: -0.035em;
   line-height: 1.02;
+  text-wrap: balance;
 }
 
 .about-page__body > p:not(.about-page__lead) {
@@ -635,6 +636,7 @@ img {
   margin: 0;
   font-size: clamp(0.9rem, 1.05vw, 1.05rem);
   line-height: 1.65;
+  text-wrap: balance;
 }
 
 .about-page__signature {
@@ -919,7 +921,7 @@ img {
   }
 
   .hero__note {
-    max-width: 18rem;
+    max-width: none;
     margin-top: 1.4rem;
   }
 
@@ -1017,8 +1019,9 @@ img {
   }
 
   .about-page__hero h1 {
-    overflow-wrap: anywhere;
-    font-size: clamp(3.2rem, 17vw, 5rem);
+    max-width: none;
+    overflow-wrap: normal;
+    font-size: clamp(2rem, calc(20vw - 2.5rem), 4rem);
   }
 
   .about-page__body {
@@ -1101,6 +1104,24 @@ img {
     padding-block: 0.65rem;
   }
 
+}
+
+@media (max-width: 380px) {
+  .collection-card__meta {
+    grid-template-rows: auto auto auto;
+  }
+
+  .collection-card__issue {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: clamp(1.5rem, 9vw, 1.85rem);
+  }
+
+  .collection-card__count {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    text-align: left;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

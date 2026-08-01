@@ -175,7 +175,9 @@ test('does not request distant photos until they approach the viewport', async (
 
   await expect(lastImage).toHaveAttribute('src', /^https:\/\//);
   await expect(lastImage).not.toHaveAttribute('data-src');
-  expect(requestedImages.some((url) => new URL(url).pathname === lastImagePath)).toBe(true);
+  await expect.poll(
+    () => requestedImages.some((url) => new URL(url).pathname === lastImagePath),
+  ).toBe(true);
   await expect(lastImage.locator('..').locator('..')).toHaveClass(/is-loaded/);
 });
 
@@ -297,6 +299,61 @@ test('renders the typographic about page without requesting gallery photos', asy
     document: document.documentElement.scrollWidth,
   }));
   expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport + 1);
+});
+
+test('keeps editorial type from breaking words at narrow widths', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto('/?view=about');
+
+  const aboutTypography = await page.locator('.about-page__hero h1').evaluate((element) => {
+    const textNode = element.firstChild;
+    const lineByCharacter = new Map<number, string>();
+
+    if (textNode?.nodeType === Node.TEXT_NODE) {
+      for (let index = 0; index < textNode.textContent!.length; index += 1) {
+        const range = document.createRange();
+        range.setStart(textNode, index);
+        range.setEnd(textNode, index + 1);
+        const line = Math.round(range.getBoundingClientRect().top);
+        lineByCharacter.set(line, `${lineByCharacter.get(line) ?? ''}${textNode.textContent![index]}`);
+      }
+    }
+
+    const bounds = element.getBoundingClientRect();
+    return {
+      lines: [...lineByCharacter.values()].map((line) => line.trim()),
+      scrollWidth: element.scrollWidth,
+      width: bounds.width,
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+    };
+  });
+
+  expect(aboutTypography.lines).toEqual(['A personal', 'collection.']);
+  expect(aboutTypography.scrollWidth).toBeLessThanOrEqual(aboutTypography.width + 1);
+  expect(aboutTypography.documentWidth).toBeLessThanOrEqual(aboutTypography.viewportWidth + 1);
+
+  await page.goto('/?view=collections');
+  const collectionIssue = page.locator('.collection-card__issue').first();
+  await expect(collectionIssue).toBeVisible();
+
+  const issueLineCount = await collectionIssue.evaluate((element) => {
+    const textNode = element.firstChild;
+    const lineTops = new Set<number>();
+
+    if (textNode?.nodeType === Node.TEXT_NODE) {
+      for (let index = 0; index < textNode.textContent!.length; index += 1) {
+        const range = document.createRange();
+        range.setStart(textNode, index);
+        range.setEnd(textNode, index + 1);
+        lineTops.add(Math.round(range.getBoundingClientRect().top));
+      }
+    }
+
+    return lineTops.size;
+  });
+
+  expect(issueLineCount).toBe(1);
 });
 
 test('keeps editorial navigation and long titles usable at 320px', async ({ page }) => {
