@@ -34,6 +34,24 @@
         "canonical": "#91A6CA",
         "tonalRamp": ["#111B2E", "#253655", "#40577C", "#60789F", "#91A6CA", "#B1C0DA", "#D2DBEA", "#F2F5FA"]
       },
+      "aperture-cool": {
+        "role": "surface",
+        "displayName": "Aperture Cool",
+        "canonical": "#0B1630",
+        "tonalRamp": ["#030713", "#061026", "#0B1630", "#18315F", "#315488", "#617AA5", "#A8B6CF", "#EEF2F8"]
+      },
+      "aperture-deep": {
+        "role": "surface",
+        "displayName": "Aperture Deep",
+        "canonical": "#081126",
+        "tonalRamp": ["#02050D", "#081126", "#142343", "#2A4675", "#4A6797", "#7890B5", "#B7C4D8", "#F1F4F9"]
+      },
+      "aperture-signal": {
+        "role": "surface",
+        "displayName": "Aperture Signal",
+        "canonical": "#102653",
+        "tonalRamp": ["#040A19", "#0B1734", "#102653", "#23477E", "#466BA0", "#7893BC", "#B8C7DD", "#F1F5FA"]
+      },
       "frame-line": {
         "role": "neutral",
         "displayName": "Frame Line",
@@ -53,14 +71,40 @@
       "label": {
         "displayName": "Program Notation",
         "purpose": "Issue, photo, state, and navigation labels."
+      },
+      "headline": {
+        "displayName": "Opening Headline",
+        "purpose": "The decisive title at the start of a viewing surface."
+      },
+      "title": {
+        "displayName": "Issue Title",
+        "purpose": "Large collection and issue markers."
+      },
+      "meta": {
+        "displayName": "Frame Metadata",
+        "purpose": "Photo numbers, captions, counts, and supporting notation."
+      },
+      "micro": {
+        "displayName": "Aperture Microcopy",
+        "purpose": "Compact cues and image-state notices."
       }
     },
     "shadows": [],
     "motion": [
       {
-        "name": "projector-gate",
-        "value": "900ms cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "The first loaded photograph opens horizontally like a projector gate."
+        "name": "aperture-warmup",
+        "value": "1.3s ease-in-out infinite alternate",
+        "purpose": "An unresolved image aperture holds a quiet projector-like pulse until the image settles."
+      },
+      {
+        "name": "arrangement-reveal",
+        "value": "240ms ease",
+        "purpose": "The gallery fades in once its measured geometry is ready."
+      },
+      {
+        "name": "image-settle",
+        "value": "420ms ease",
+        "purpose": "Loaded gallery and collection images settle into the screening surface."
       },
       {
         "name": "state-change",

@@ -1,6 +1,5 @@
 import GLightbox from 'glightbox';
 import 'glightbox/dist/css/glightbox.css';
-import './styles.css';
 import { initializeAnalytics, trackPhotoView } from './analytics';
 import {
   formatPhotoNumber,
@@ -98,6 +97,53 @@ let lastTrackedPhotoIndex: number | null = null;
 let lastOpenedPhotoLink: HTMLAnchorElement | null = null;
 let reloadLightbox: (() => void) | undefined;
 let unobservePhotoCard: ((card: HTMLElement) => void) | undefined;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const galleryImageSizes = '(max-width: 680px) 100vw, (max-width: 1100px) 66vw, 75vw';
+const collectionImageSizes = '(max-width: 680px) 100vw, (max-width: 1100px) 58vw, 67vw';
+
+interface ResponsiveImageSources {
+  sizes: string;
+  srcset?: string;
+}
+
+function getResponsiveImageSources(url: string, sizes: string): ResponsiveImageSources {
+  try {
+    const sourceUrl = new URL(url);
+
+    if (!/^(?:preview|external-preview)\.redd\.it$/i.test(sourceUrl.hostname)) {
+      return { sizes };
+    }
+
+    const srcset = [480, 768, 1080]
+      .map((width) => {
+        const candidateUrl = new URL(sourceUrl);
+        candidateUrl.searchParams.set('width', String(width));
+        return `${candidateUrl.href} ${width}w`;
+      })
+      .join(', ');
+
+    return { sizes, srcset };
+  } catch {
+    return { sizes };
+  }
+}
+
+function hydrateLazyImage(image: HTMLImageElement): void {
+  const sourceSet = image.dataset.srcset;
+
+  if (sourceSet) {
+    image.srcset = sourceSet;
+    delete image.dataset.srcset;
+  }
+
+  const source = image.dataset.src;
+
+  if (source) {
+    image.src = source;
+    delete image.dataset.src;
+  }
+}
+
 const lazyImageObserver = 'IntersectionObserver' in window
   ? new IntersectionObserver(
       (entries, observer) => {
@@ -107,12 +153,7 @@ const lazyImageObserver = 'IntersectionObserver' in window
           }
 
           const image = entry.target as HTMLImageElement;
-          const source = image.dataset.src;
-
-          if (source) {
-            image.src = source;
-            delete image.dataset.src;
-          }
+          hydrateLazyImage(image);
 
           observer.unobserve(image);
         });
@@ -214,16 +255,23 @@ function layoutGallery(): void {
       : Math.min(targetRowHeight, naturalRowHeight);
     const rowWidth = rowHeight * aspectSum + gapsWidth;
     let left = shouldFill ? 0 : Math.max(0, (availableWidth - rowWidth) / 2);
-    let bottom = top;
-
-    row.forEach((card) => {
+    const placements = row.map((card) => {
       const width = rowHeight * getAspect(card);
+      const placement = { card, left, width };
+      left += width + columnGap;
+      return placement;
+    });
+
+    placements.forEach(({ card, left: cardLeft, width }) => {
       card.style.position = 'absolute';
       card.style.width = `${width}px`;
-      card.style.transform = `translate3d(${left}px, ${top}px, 0)`;
-      left += width + columnGap;
-      bottom = Math.max(bottom, top + card.getBoundingClientRect().height);
+      card.style.transform = `translate3d(${cardLeft}px, ${top}px, 0)`;
     });
+
+    const bottom = placements.reduce(
+      (currentBottom, { card }) => Math.max(currentBottom, top + card.getBoundingClientRect().height),
+      top,
+    );
 
     top = bottom + rowGap;
     row = [];
@@ -378,6 +426,11 @@ function createCollectionCard(
 
   if (cover) {
     const image = document.createElement('img');
+    const imageSources = getResponsiveImageSources(cover.url, collectionImageSizes);
+    image.sizes = imageSources.sizes;
+    if (imageSources.srcset) {
+      image.srcset = imageSources.srcset;
+    }
     image.src = cover.url;
     image.alt = cover.caption
       ? `${cover.caption}, cover of issue ${formatPhotoNumber(issue.number)}, ${issue.year}`
@@ -441,15 +494,28 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
   link.dataset.title = photo.caption ? `${number} — ${photo.caption}` : `Photo ${number}`;
   link.setAttribute('aria-label', `Open photo ${number} in full-screen gallery`);
 
+  const imageSources = getResponsiveImageSources(photo.url, galleryImageSizes);
+  link.dataset.sizes = imageSources.sizes;
+  if (imageSources.srcset) {
+    link.dataset.srcset = imageSources.srcset;
+  }
+
   image.alt = photo.caption || `PHOTO B gallery photograph ${number}`;
+  image.sizes = imageSources.sizes;
   image.loading = index < 2 ? 'eager' : 'lazy';
   image.decoding = 'async';
 
   if (index < 2) {
+    if (imageSources.srcset) {
+      image.srcset = imageSources.srcset;
+    }
     image.src = photo.url;
     image.fetchPriority = 'high';
   } else {
     image.dataset.src = photo.url;
+    if (imageSources.srcset) {
+      image.dataset.srcset = imageSources.srcset;
+    }
   }
 
   const markFailed = (): void => {
@@ -541,8 +607,7 @@ if (pageView === 'collections') {
       return;
     }
 
-    image.src = image.dataset.src ?? '';
-    delete image.dataset.src;
+    hydrateLazyImage(image);
   });
   updateViewCount(1, parsed.photos.length);
   scheduleGalleryLayout();
@@ -563,11 +628,23 @@ if (pageView === 'collections') {
     loop: true,
     zoomable: true,
     draggable: true,
-    openEffect: 'fade',
-    closeEffect: 'fade',
-    slideEffect: 'slide',
+    openEffect: reduceMotion ? 'none' : 'fade',
+    closeEffect: reduceMotion ? 'none' : 'fade',
+    slideEffect: reduceMotion ? 'none' : 'slide',
   });
   reloadLightbox = () => lightbox.reload();
+
+  lightbox.on('open', () => {
+    const modal = document.querySelector<HTMLElement>('.glightbox-container');
+
+    if (!modal) {
+      return;
+    }
+
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'PHOTO B photo viewer');
+    modal.querySelector<HTMLButtonElement>('.gclose')?.focus({ preventScroll: true });
+  });
 
   lightbox.on('slide_changed', () => {
     lastViewedPhotoIndex = lightbox.getActiveSlideIndex() ?? lastViewedPhotoIndex;

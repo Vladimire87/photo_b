@@ -7,6 +7,9 @@ colors:
   projector-yellow: "#FFD84A"
   screen-white: "#F4F3ED"
   reel-blue: "#91A6CA"
+  aperture-cool: "#0B1630"
+  aperture-deep: "#081126"
+  aperture-signal: "#102653"
   frame-line: "rgba(145, 166, 202, 0.42)"
 typography:
   display:
@@ -15,17 +18,41 @@ typography:
     fontWeight: 400
     lineHeight: 0.86
     letterSpacing: "-0.04em"
+  headline:
+    fontFamily: "Archivo Black, Arial Black, sans-serif"
+    fontSize: "clamp(3.25rem, 4.4vw, 5.2rem)"
+    fontWeight: 400
+    lineHeight: 0.84
+    letterSpacing: "-0.04em"
+  title:
+    fontFamily: "Archivo Black, Arial Black, sans-serif"
+    fontSize: "clamp(2rem, 3.8vw, 4.8rem)"
+    fontWeight: 400
+    lineHeight: 0.9
+    letterSpacing: "-0.035em"
   body:
     fontFamily: "Spline Sans, Arial, sans-serif"
     fontSize: "clamp(0.9rem, 1.2vw, 1.1rem)"
     fontWeight: 400
     lineHeight: 1.6
+  meta:
+    fontFamily: "Archivo Narrow, Arial Narrow, sans-serif"
+    fontSize: "0.74rem"
+    fontWeight: 500
+    lineHeight: 1.4
+    letterSpacing: "0.045em"
   label:
     fontFamily: "Archivo Narrow, Arial Narrow, sans-serif"
     fontSize: "0.8rem"
     fontWeight: 600
     lineHeight: 1.4
     letterSpacing: "0.05em"
+  micro:
+    fontFamily: "Archivo Narrow, Arial Narrow, sans-serif"
+    fontSize: "0.72rem"
+    fontWeight: 600
+    lineHeight: 1.4
+    letterSpacing: "0.08em"
 rounded:
   structural: "0"
 spacing:
@@ -78,6 +105,8 @@ The palette is a dark screening room interrupted by a controlled beam of warm li
 
 - **Booth Black** (`#050A12`): deeper framing behind images and lightbox-adjacent surfaces.
 - **Reel Blue** (`#91A6CA`): secondary metadata and inactive controls.
+- **Aperture Cool** (`#0B1630`): the quiet loading field behind gallery and collection images.
+- **Aperture Deep** (`#081126`) and **Aperture Signal** (`#102653`): the restrained warm-up range for an unresolved image aperture.
 
 ### Neutral
 
@@ -92,6 +121,13 @@ The palette is a dark screening room interrupted by a controlled beam of warm li
 **Label Font:** Archivo Narrow (with Arial Narrow fallback)
 
 **Character:** Display type should feel cut for a cinema program board, while body text remains contemporary and highly readable. Labels may use compact uppercase because they operate as indexing, not as decorative eyebrows.
+
+### Observed Role Scale
+
+- **Headline** is the opening title range, from `clamp(3.25rem, 4.4vw, 5.2rem)` on the gallery to a larger responsive statement on About.
+- **Title** is the collection issue marker range, from `clamp(2rem, 3.8vw, 4.8rem)`.
+- **Meta** carries photograph numbers, captions, and counts at `0.74rem`; **micro** carries compact cues and unavailable-image notices at `0.72rem`.
+- Mobile overrides may compress a role to protect fit and preserve the 44px target rule; they are functional adaptations, not new visual voices.
 
 **The Program Rule.** Large display type states the current viewing context once; compact labels carry all repeated issue and image notation.
 

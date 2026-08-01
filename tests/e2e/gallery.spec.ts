@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 
 const galleryImage = Buffer.from(
@@ -6,6 +7,19 @@ const galleryImage = Buffer.from(
 const deletedImagePlaceholder = Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" width="130" height="60"></svg>',
 );
+
+function countIssuePhotos(issueSlug: string): number {
+  return readFileSync(
+    new URL(`../../src/data/issues/${issueSlug}.txt`, import.meta.url),
+    'utf8',
+  )
+    .split(/\r?\n/)
+    .filter((line) => {
+      const value = line.trim();
+      return value !== '' && !value.startsWith('#');
+    })
+    .length;
+}
 
 async function mockImages(
   page: Page,
@@ -53,7 +67,7 @@ test('renders the complete editorial gallery without horizontal overflow', async
   await page.goto('/');
 
   await expect(page.getByRole('heading', { name: /photos i keep/i })).toBeVisible();
-  await expect(page.locator('#issue-label')).toContainText('Issue 01');
+  await expect(page.locator('#issue-label')).toContainText(/Issue \d{2}/);
   const photoCount = await page.locator('.photo-card').count();
   expect(photoCount).toBeGreaterThan(0);
   await expect(page.locator('#view-count')).toHaveText(`PHOTO 01 / ${String(photoCount).padStart(2, '0')}`);
@@ -61,6 +75,8 @@ test('renders the complete editorial gallery without horizontal overflow', async
 
   expect(await page.locator('.photo-card img').nth(0).getAttribute('loading')).toBe('eager');
   expect(await page.locator('.photo-card img').nth(2).getAttribute('loading')).toBe('lazy');
+  await expect(page.locator('.photo-card img').first()).toHaveAttribute('sizes', /100vw/);
+  await expect(page.locator('.photo-card img').first()).toHaveAttribute('srcset', /480w/);
 
   const dimensions = await page.evaluate(() => ({
     viewport: window.innerWidth,
@@ -144,17 +160,22 @@ test('renders the complete editorial gallery without horizontal overflow', async
 });
 
 test('does not request distant photos until they approach the viewport', async ({ page }) => {
-  await mockImages(page);
+  const requestedImages: string[] = [];
+  await mockImages(page, (url) => requestedImages.push(url));
   await page.goto('/?issue=2026-01');
 
   const lastImage = page.locator('.photo-card img').last();
   await expect(lastImage).not.toHaveAttribute('src', /.+/);
-  await expect(lastImage).toHaveAttribute('data-src', /^https:\/\//);
+  const lastImageSource = await lastImage.getAttribute('data-src');
+  expect(lastImageSource).toMatch(/^https:\/\//);
+  const lastImagePath = new URL(lastImageSource!).pathname;
+  expect(requestedImages.some((url) => new URL(url).pathname === lastImagePath)).toBe(false);
 
   await lastImage.scrollIntoViewIfNeeded();
 
   await expect(lastImage).toHaveAttribute('src', /^https:\/\//);
   await expect(lastImage).not.toHaveAttribute('data-src');
+  expect(requestedImages.some((url) => new URL(url).pathname === lastImagePath)).toBe(true);
   await expect(lastImage.locator('..').locator('..')).toHaveClass(/is-loaded/);
 });
 
@@ -162,26 +183,35 @@ test('opens the latest issue at its stable URL and disables missing neighbors', 
   await mockImages(page);
   await page.goto('/');
 
-  await expect(page).toHaveTitle('PHOTO B — Issue 01 / 2026');
-  await expect(page.locator('#issue-label')).toContainText('Issue 01');
-  await expect(page.locator('.photo-card')).toHaveCount(33);
-  await expect(page.locator('#previous-issue')).toHaveAttribute('aria-disabled', 'true');
+  await expect(page).toHaveTitle(/PHOTO B — Issue \d{2} \/ 20\d{2}/);
+  await expect(page.locator('#issue-label')).toContainText(/Issue \d{2}/);
+  expect(await page.locator('.photo-card').count()).toBeGreaterThan(0);
+  await expect(page.locator('#previous-issue')).not.toHaveAttribute('aria-disabled', 'true');
   await expect(page.locator('#next-issue')).toHaveAttribute('aria-disabled', 'true');
 
-  await page.goto('/?issue=2026-01');
-  await expect(page).toHaveURL(/\?issue=2026-01$/);
-  await expect(page.locator('#issue-label')).toContainText('Issue 01');
-  await expect(page.locator('.photo-card')).toHaveCount(33);
+  const previousIssue = page.locator('#previous-issue');
+  await expect(previousIssue).toHaveAttribute('href', /^\?issue=\d{4}-\d{2}$/);
+  await previousIssue.click();
+  await expect(page).toHaveURL(/\?issue=\d{4}-\d{2}$/);
+  await expect(page).toHaveTitle(/PHOTO B — Issue \d{2} \/ 20\d{2}/);
+  await expect(page.locator('#issue-label')).toContainText(/Issue \d{2}/);
+  expect(await page.locator('.photo-card').count()).toBeGreaterThan(0);
+  await expect(page.locator('#previous-issue')).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.locator('#next-issue')).toHaveAttribute('href', /^\?issue=\d{4}-\d{2}$/);
 });
 
 test('falls back to the latest issue when an unknown issue is requested', async ({ page }) => {
   const requestedImages: string[] = [];
   await mockImages(page, (url) => requestedImages.push(url));
+  await page.goto('/');
+  const latestTitle = await page.title();
+  const latestIssueLabel = (await page.locator('#issue-label').innerText()).replace(/\s+/g, ' ').trim();
+
   await page.goto('/?issue=2026-99');
   await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
 
-  await expect(page).toHaveTitle('PHOTO B — Issue 01 / 2026');
-  await expect(page.locator('#issue-label')).toContainText('Issue 01');
+  await expect(page).toHaveTitle(latestTitle);
+  expect((await page.locator('#issue-label').innerText()).replace(/\s+/g, ' ').trim()).toBe(latestIssueLabel);
   expect(requestedImages.length).toBeGreaterThan(0);
 });
 
@@ -192,8 +222,8 @@ test('renders the collections archive and opens an issue', async ({ page }) => {
   await expect(page).toHaveTitle('PHOTO B — Collections');
   await expect(page.getByRole('heading', { name: /collections/i })).toBeVisible();
   await expect(page.locator('#collections-link')).toHaveAttribute('aria-current', 'page');
-  await expect(page.locator('.collection-card')).toHaveCount(1);
-  await expect(page.locator('.collection-card').first()).toContainText('ISSUE 01 — 2026');
+  expect(await page.locator('.collection-card').count()).toBeGreaterThan(0);
+  await expect(page.locator('.collection-card').first()).toContainText(/ISSUE \d{2} — 20\d{2}/);
   await expect(page.locator('.collection-card').first()).toContainText('LATEST');
   await expect(page.locator('#view-status')).toBeHidden();
 
@@ -203,9 +233,9 @@ test('renders the collections archive and opens an issue', async ({ page }) => {
   }));
   expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport + 1);
 
-  await page.locator('.collection-card__link').click();
-  await expect(page).toHaveURL(/\?issue=2026-01$/);
-  await expect(page.locator('#issue-label')).toContainText('Issue 01');
+  await page.locator('.collection-card__link').first().click();
+  await expect(page).toHaveURL(/\?issue=\d{4}-\d{2}$/);
+  await expect(page.locator('#issue-label')).toContainText(/Issue \d{2}/);
 });
 
 test('keeps gallery and collection images still on hover', async ({ page }) => {
@@ -316,6 +346,10 @@ test('opens and closes the touch-friendly lightbox', async ({ page }) => {
   const photoCount = await page.locator('.photo-card').count();
 
   await expect(page.locator('.glightbox-container')).toBeVisible();
+  await expect(page.locator('.glightbox-container')).toHaveAttribute('role', 'dialog');
+  await expect(page.locator('.glightbox-container')).toHaveAttribute('aria-modal', 'true');
+  await expect(page.locator('.glightbox-container')).toHaveAttribute('aria-label', 'PHOTO B photo viewer');
+  await expect(page.locator('.gclose')).toBeFocused();
   const lightboxBounds = await page.evaluate(() => {
     const image = document.querySelector<HTMLElement>('.gslide.current .gslide-image img')!;
     const description = document.querySelector<HTMLElement>('.gslide.current .gslide-description')!;
@@ -336,6 +370,45 @@ test('opens and closes the touch-friendly lightbox', async ({ page }) => {
   await expect(page.locator('.glightbox-container')).toBeHidden();
   await expect(page.locator('#view-count')).toHaveText(`PHOTO 02 / ${String(photoCount).padStart(2, '0')}`);
   await expect(trigger).toBeFocused();
+});
+
+test('removes gallery and lightbox motion for reduced-motion users', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await mockImages(page);
+  await page.goto('/');
+  await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
+
+  const galleryMotion = await page.locator('#gallery').evaluate((element) => {
+    const styles = getComputedStyle(element);
+    return {
+      animationName: styles.animationName,
+      transitionDuration: styles.transitionDuration,
+    };
+  });
+  expect(galleryMotion).toEqual({ animationName: 'none', transitionDuration: '0s' });
+
+  await page.locator('.photo-card__media').first().click();
+  await expect(page.locator('.glightbox-container')).toBeVisible();
+  const lightboxMotion = await page.evaluate(() => {
+    const selectors = ['.gslider', '.gslide.current', '.goverlay', '.gloader'];
+    return selectors.map((selector) => {
+      const element = document.querySelector<HTMLElement>(selector);
+      if (!element) {
+        return null;
+      }
+
+      const styles = getComputedStyle(element);
+      return {
+        selector,
+        animationName: styles.animationName,
+        transitionDuration: styles.transitionDuration,
+      };
+    });
+  });
+  expect(lightboxMotion.filter(Boolean).every((motion) => (
+    motion!.animationName === 'none' && motion!.transitionDuration === '0s'
+  ))).toBe(true);
+  await page.keyboard.press('Escape');
 });
 
 test('removes a failed external image and rebuilds the gallery sequence', async ({ page }) => {
@@ -361,10 +434,13 @@ test('removes a failed external image and rebuilds the gallery sequence', async 
 
 test('removes a deletion placeholder returned as a valid image body', async ({ page }) => {
   const deletedUrl = 'pbxnq8x2njdh1.jpeg';
+  const expectedPhotoCount = countIssuePhotos('2026-01');
   await mockImages(page, undefined, deletedUrl);
-  await page.goto('/');
+  await page.goto('/?issue=2026-01');
 
   await expect(page.locator(`img[src*="${deletedUrl}"]`)).toHaveCount(0);
-  await expect(page.locator('.photo-card')).toHaveCount(32);
-  await expect(page.locator('#view-count')).toHaveText('PHOTO 01 / 32');
+  await expect(page.locator('.photo-card')).toHaveCount(expectedPhotoCount - 1);
+  await expect(page.locator('#view-count')).toHaveText(
+    `PHOTO 01 / ${String(expectedPhotoCount - 1).padStart(2, '0')}`,
+  );
 });
