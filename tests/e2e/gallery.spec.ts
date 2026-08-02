@@ -8,6 +8,10 @@ const deletedImagePlaceholder = Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" width="130" height="60"></svg>',
 );
 
+interface MockImageOptions {
+  acceptMaturity?: boolean;
+}
+
 function countIssuePhotos(issueSlug: string): number {
   return readFileSync(
     new URL(`../../src/data/issues/${issueSlug}.txt`, import.meta.url),
@@ -21,11 +25,26 @@ function countIssuePhotos(issueSlug: string): number {
     .length;
 }
 
+async function acceptMaturity(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    try {
+      window.localStorage.setItem('photo-b-maturity-confirmed', String(Date.now()));
+    } catch {
+      // Keep the test usable when browser storage is unavailable.
+    }
+  });
+}
+
 async function mockImages(
   page: Page,
   onImageRequest?: (url: string) => void,
   deletedImageUrl?: string,
+  options: MockImageOptions = {},
 ): Promise<void> {
+  if (options.acceptMaturity !== false) {
+    await acceptMaturity(page);
+  }
+
   await page.route('https://**/*', async (route) => {
     if (route.request().resourceType() === 'image') {
       const url = route.request().url();
@@ -60,6 +79,32 @@ test('publishes a complete large-image social preview', async ({ page, request }
   const preview = await request.get('/assets/photo-b-og.png');
   expect(preview.ok()).toBe(true);
   expect(preview.headers()['content-type']).toContain('image/png');
+});
+
+test('shows the mature-content notice before requesting gallery photos', async ({ page }) => {
+  const requestedImages: string[] = [];
+  await mockImages(page, (url) => requestedImages.push(url), undefined, { acceptMaturity: false });
+  await page.goto('/?issue=2026-02');
+
+  const gate = page.getByRole('dialog', { name: /photo b/i });
+  await expect(gate).toBeVisible();
+  await expect(gate).toContainText('artistic nudity and erotic imagery');
+  await expect(page.locator('.photo-card')).toHaveCount(0);
+  expect(requestedImages).toEqual([]);
+  await expect(page.getByRole('button', { name: /enter photo b/i })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: /leave/i })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: /enter photo b/i })).toBeFocused();
+
+  await page.getByRole('button', { name: /enter photo b/i }).click();
+  await expect(gate).toBeHidden();
+  await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
+  expect(requestedImages.length).toBeGreaterThan(0);
+
+  await page.reload();
+  await expect(page.getByRole('dialog', { name: /photo b/i })).toBeHidden();
+  await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
 });
 
 test('renders the complete editorial gallery without horizontal overflow', async ({ page }) => {
@@ -164,6 +209,8 @@ test('renders the complete editorial gallery without horizontal overflow', async
 });
 
 test('keeps mixed aspect ratios visible without forcing the first photo to fill the stage', async ({ page }) => {
+  await acceptMaturity(page);
+
   const dimensions = [
     { marker: 'jlm5t449d8fh1', width: 800, height: 1200 },
     { marker: 'charleen-weiss', width: 1400, height: 700 },
@@ -365,6 +412,7 @@ test('renders the typographic about page without requesting gallery photos', asy
 
 test('keeps editorial type from breaking words at narrow widths', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
+  await acceptMaturity(page);
   await page.goto('/?view=about');
 
   const aboutTypography = await page.locator('.about-page__hero h1').evaluate((element) => {

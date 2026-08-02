@@ -82,6 +82,8 @@ const previousIssueLink = getRequiredElement<HTMLAnchorElement>('#previous-issue
 const nextIssueLink = getRequiredElement<HTMLAnchorElement>('#next-issue');
 const issueSwitcher = getRequiredElement<HTMLElement>('.issue-switcher');
 const siteHeader = getRequiredElement<HTMLElement>('#site-header');
+const siteMain = getRequiredElement<HTMLElement>('main');
+const siteFooter = getRequiredElement<HTMLElement>('.site-footer');
 const galleryPage = getRequiredElement<HTMLElement>('#gallery-page');
 const collectionsPage = getRequiredElement<HTMLElement>('#collections-page');
 const collectionsGrid = getRequiredElement<HTMLElement>('#collections-grid');
@@ -89,6 +91,9 @@ const aboutPage = getRequiredElement<HTMLElement>('#about-page');
 const latestLink = getRequiredElement<HTMLAnchorElement>('#latest-link');
 const collectionsLink = getRequiredElement<HTMLAnchorElement>('#collections-link');
 const aboutLink = getRequiredElement<HTMLAnchorElement>('#about-link');
+const maturityGate = getRequiredElement<HTMLElement>('#maturity-gate');
+const maturityEnter = getRequiredElement<HTMLButtonElement>('#maturity-enter');
+const maturityLeave = getRequiredElement<HTMLButtonElement>('#maturity-leave');
 
 const parsed = parsePhotoEntries(photoSource);
 let layoutFrame: number | undefined;
@@ -100,10 +105,117 @@ let unobservePhotoCard: ((card: HTMLElement) => void) | undefined;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const galleryImageSizes = '(max-width: 680px) 100vw, (max-width: 1100px) 66vw, 75vw';
 const collectionImageSizes = '(max-width: 680px) 100vw, (max-width: 1100px) 58vw, 67vw';
+const maturityStorageKey = 'photo-b-maturity-confirmed';
+const maturityStorageLifetime = 30 * 24 * 60 * 60 * 1000;
+const maturityGuardedRegions = [siteHeader, siteMain, siteFooter];
 
 interface ResponsiveImageSources {
   sizes: string;
   srcset?: string;
+}
+
+function hasMaturityConfirmation(): boolean {
+  try {
+    const confirmedAt = Number(window.localStorage.getItem(maturityStorageKey));
+
+    if (!Number.isFinite(confirmedAt) || Date.now() - confirmedAt >= maturityStorageLifetime) {
+      window.localStorage.removeItem(maturityStorageKey);
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function rememberMaturityConfirmation(): void {
+  try {
+    window.localStorage.setItem(maturityStorageKey, String(Date.now()));
+  } catch {
+    // Continue without persistence when storage is unavailable.
+  }
+}
+
+async function requestMaturityConfirmation(): Promise<boolean> {
+  if ((pageView !== 'gallery' && pageView !== 'collections') || hasMaturityConfirmation()) {
+    return false;
+  }
+
+  maturityGate.hidden = false;
+  document.body.classList.add('maturity-gate-open');
+  maturityGuardedRegions.forEach((region) => {
+    region.setAttribute('aria-hidden', 'true');
+    region.setAttribute('inert', '');
+  });
+
+  const previouslyFocused = document.activeElement instanceof HTMLElement
+    && document.activeElement !== document.body
+    ? document.activeElement
+    : null;
+
+  return new Promise<boolean>((resolve) => {
+    const focusableControls = [maturityEnter, maturityLeave];
+
+    const closeGate = (): void => {
+      maturityGate.hidden = true;
+      document.body.classList.remove('maturity-gate-open');
+      maturityGuardedRegions.forEach((region) => {
+        region.removeAttribute('aria-hidden');
+        region.removeAttribute('inert');
+      });
+      maturityEnter.removeEventListener('click', confirmEntry);
+      maturityLeave.removeEventListener('click', leaveSite);
+      maturityGate.removeEventListener('keydown', trapFocus);
+
+      if (previouslyFocused?.isConnected) {
+        previouslyFocused.focus({ preventScroll: true });
+      }
+
+      resolve(true);
+    };
+
+    const confirmEntry = (): void => {
+      rememberMaturityConfirmation();
+      closeGate();
+    };
+
+    const leaveSite = (): void => {
+      if (window.history.length > 1) {
+        window.history.back();
+        return;
+      }
+
+      window.location.replace('about:blank');
+    };
+
+    const trapFocus = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        return;
+      }
+
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const firstControl = focusableControls[0];
+      const lastControl = focusableControls[focusableControls.length - 1];
+
+      if (event.shiftKey && document.activeElement === firstControl) {
+        event.preventDefault();
+        lastControl.focus();
+      } else if (!event.shiftKey && document.activeElement === lastControl) {
+        event.preventDefault();
+        firstControl.focus();
+      }
+    };
+
+    maturityEnter.addEventListener('click', confirmEntry);
+    maturityLeave.addEventListener('click', leaveSite);
+    maturityGate.addEventListener('keydown', trapFocus);
+    maturityEnter.focus({ preventScroll: true });
+  });
 }
 
 function getResponsiveImageSources(url: string, sizes: string): ResponsiveImageSources {
@@ -604,6 +716,8 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
   return figure;
 }
 
+const maturityGateWasShown = await requestMaturityConfirmation();
+
 if (pageView === 'collections') {
   await renderCollections();
 } else if (pageView === 'gallery' && parsed.photos.length === 0) {
@@ -675,5 +789,14 @@ if (pageView === 'collections') {
     );
     lastTrackedPhotoIndex = null;
     lastOpenedPhotoLink?.focus({ preventScroll: true });
+  });
+}
+
+if (maturityGateWasShown) {
+  window.requestAnimationFrame(() => {
+    const firstContentLink = pageView === 'collections'
+      ? document.querySelector<HTMLElement>('.collection-card__link')
+      : document.querySelector<HTMLElement>('.photo-card__media');
+    firstContentLink?.focus({ preventScroll: true });
   });
 }

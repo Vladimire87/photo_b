@@ -64,6 +64,33 @@
     <title>PHOTO B — Photos I Like</title>
   </head>
   <body>
+    <div
+      id="maturity-gate"
+      class="maturity-gate"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="maturity-gate-title"
+      aria-describedby="maturity-gate-copy"
+      hidden
+    >
+      <div class="maturity-gate__panel">
+        <p class="maturity-gate__mark">18+ / Screening notice</p>
+        <h2 id="maturity-gate-title">PHOTO B</h2>
+        <p id="maturity-gate-copy" class="maturity-gate__copy">
+          This personal gallery contains artistic nudity and erotic imagery.
+        </p>
+        <p class="maturity-gate__instruction">Enter only if you are 18 or older.</p>
+        <div class="maturity-gate__actions">
+          <button id="maturity-enter" class="maturity-gate__action maturity-gate__action--primary" type="button">
+            Enter PHOTO B
+          </button>
+          <button id="maturity-leave" class="maturity-gate__action" type="button">
+            Leave
+          </button>
+        </div>
+      </div>
+    </div>
+
     <header id="site-header" class="site-header">
       <a class="brand" href="./" aria-label="PHOTO B, latest issue">
         <span class="brand__mark" aria-hidden="true"></span>
@@ -102,6 +129,10 @@
           <p class="hero__note">
             A personal selection, published in numbered issues.
           </p>
+          <p class="hero__maturity" aria-label="18 plus, artistic nudity and erotic imagery">
+            <span class="hero__maturity-mark">18+</span>
+            <span>Artistic nudity &amp; erotic imagery</span>
+          </p>
           <p class="hero__program">
             <span>Latest issue</span>
             <span id="hero-year">2026</span>
@@ -123,6 +154,7 @@
           <h1 id="collections-title">Collections</h1>
           <p class="editorial-page__intro">
             Browse every issue, newest first.
+            <span class="editorial-page__maturity">18+ · Artistic nudity &amp; erotic imagery</span>
           </p>
         </header>
         <div id="collections-grid" class="collections-grid"></div>
