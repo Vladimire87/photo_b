@@ -100,6 +100,8 @@ test('renders the complete editorial gallery without horizontal overflow', async
       const cards = [...document.querySelectorAll('.photo-card')]
         .map((card) => card.getBoundingClientRect());
       const firstRow = cards.filter((card) => Math.abs(card.top - cards[0].top) < 2);
+      const rowTops = [...new Set(cards.map((card) => Math.round(card.top)))];
+      const rowCounts = rowTops.map((top) => cards.filter((card) => Math.abs(card.top - top) < 2).length);
       const occupiedWidth = firstRow.reduce((total, card) => total + card.width, 0);
 
       return {
@@ -109,14 +111,16 @@ test('renders the complete editorial gallery without horizontal overflow', async
         firstWidth: Math.round(cards[0].width),
         firstRowCount: firstRow.length,
         occupiedWidth: Math.round(occupiedWidth),
+        rowCounts,
       };
     });
 
     expect(composition.firstLeft).toBeGreaterThan(composition.heroRight);
     expect(composition.firstRowCount).toBeGreaterThan(1);
-    expect(composition.firstWidth).toBeGreaterThan(composition.galleryWidth * 0.3);
-    expect(composition.firstWidth).toBeLessThan(composition.galleryWidth * 0.6);
+    expect(composition.firstWidth).toBeGreaterThan(composition.galleryWidth * 0.25);
+    expect(composition.firstWidth).toBeLessThan(composition.galleryWidth * 0.75);
     expect(composition.occupiedWidth).toBeGreaterThan(composition.galleryWidth * 0.9);
+    expect(new Set(composition.rowCounts).size).toBeGreaterThan(1);
   } else if (page.viewportSize()!.width <= 680) {
     const mobileComposition = await page.locator('.photo-card').first().evaluate((card) => {
       const bounds = card.getBoundingClientRect();
@@ -157,6 +161,64 @@ test('renders the complete editorial gallery without horizontal overflow', async
   });
 
   expect(footerLogoAlignment).toBeLessThanOrEqual(1);
+});
+
+test('keeps mixed aspect ratios visible without forcing the first photo to fill the stage', async ({ page }) => {
+  const dimensions = [
+    { marker: 'jlm5t449d8fh1', width: 800, height: 1200 },
+    { marker: 'charleen-weiss', width: 1400, height: 700 },
+  ];
+
+  await page.route('https://**/*', async (route) => {
+    if (route.request().resourceType() === 'image') {
+      const dimension = dimensions.find(({ marker }) => route.request().url().includes(marker))
+        ?? { width: 900, height: 900 };
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        headers: { 'cache-control': 'no-store' },
+        body: `<svg xmlns="http://www.w3.org/2000/svg" width="${dimension.width}" height="${dimension.height}"></svg>`,
+      });
+      return;
+    }
+
+    await route.continue();
+  });
+
+  await page.goto('/');
+  await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
+  await expect(page.locator('.photo-card').nth(1)).toHaveClass(/is-loaded/);
+
+  const composition = await page.evaluate(() => {
+    const gallery = document.querySelector('#gallery')!.getBoundingClientRect();
+    const cards = [...document.querySelectorAll('.photo-card')]
+      .slice(0, 2)
+      .map((card) => card.getBoundingClientRect());
+
+    return {
+      galleryLeft: gallery.left,
+      galleryRight: gallery.right,
+      first: cards[0],
+      second: cards[1],
+      firstMediaHeight: document.querySelector('.photo-card__media')!.getBoundingClientRect().height,
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+    };
+  });
+
+  if (page.viewportSize()!.width > 680) {
+    expect(composition.first.top).toBeCloseTo(composition.second.top, 0);
+    expect(composition.first.width).toBeLessThan(
+      (composition.galleryRight - composition.galleryLeft) * 0.4,
+    );
+    expect(composition.second.width).toBeGreaterThan(composition.first.width * 2);
+    expect(composition.first.left).toBeGreaterThanOrEqual(composition.galleryLeft - 1);
+    expect(composition.second.right).toBeLessThanOrEqual(composition.galleryRight + 1);
+  } else {
+    expect(composition.first.width).toBeGreaterThanOrEqual(page.viewportSize()!.width - 1);
+    expect(composition.firstMediaHeight).toBeGreaterThan(composition.first.width * 1.3);
+  }
+
+  expect(composition.overflow).toBeLessThanOrEqual(1);
 });
 
 test('does not request distant photos until they approach the viewport', async ({ page }) => {
@@ -393,6 +455,12 @@ test('flows directly from the issue intro into the gallery on a short mobile scr
     (card) => card.getBoundingClientRect().top,
   );
   expect(firstPhotoTop).toBeLessThan(568);
+
+  const issueLabel = await page.locator('#issue-label').evaluate((element) => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(issueLabel.scrollWidth).toBeLessThanOrEqual(issueLabel.clientWidth + 1);
 });
 
 test('opens and closes the touch-friendly lightbox', async ({ page }) => {

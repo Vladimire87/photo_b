@@ -1,18 +1,3 @@
-export const LAYOUT_VARIANTS = [
-  'feature',
-  'panorama',
-  'portrait',
-  'square',
-  'portrait',
-  'landscape',
-  'wide',
-  'portrait',
-  'square',
-  'landscape',
-  'portrait',
-  'wide',
-] as const;
-
 export interface PhotoEntry {
   url: string;
   caption?: string;
@@ -60,10 +45,6 @@ export function parsePhotoEntries(source: string): ParsedPhotoEntries {
   });
 
   return { photos, warnings };
-}
-
-export function getLayoutVariant(index: number): (typeof LAYOUT_VARIANTS)[number] {
-  return LAYOUT_VARIANTS[index % LAYOUT_VARIANTS.length];
 }
 
 export function formatPhotoNumber(value: number): string {

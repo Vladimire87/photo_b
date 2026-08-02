@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  LAYOUT_VARIANTS,
   formatPhotoNumber,
-  getLayoutVariant,
   isUsablePhotoDimensions,
   parsePhotoEntries,
 } from '../src/gallery';
@@ -38,11 +36,6 @@ describe('parsePhotoEntries', () => {
 });
 
 describe('editorial metadata', () => {
-  it('repeats the editorial layout pattern', () => {
-    expect(getLayoutVariant(0)).toBe('feature');
-    expect(getLayoutVariant(LAYOUT_VARIANTS.length)).toBe('feature');
-  });
-
   it('formats photo numbers consistently', () => {
     expect(formatPhotoNumber(1)).toBe('01');
     expect(formatPhotoNumber(12)).toBe('12');

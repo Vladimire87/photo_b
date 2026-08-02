@@ -233,14 +233,32 @@ function layoutGallery(): void {
   const columnGap = Number.parseFloat(galleryStyles.columnGap) || 0;
   const rowGap = Number.parseFloat(galleryStyles.rowGap) || 0;
   const availableWidth = gallery.clientWidth;
-  const targetRowHeight = Math.min(440, Math.max(300, availableWidth * 0.4));
+  if (availableWidth <= 0) {
+    return;
+  }
+
+  const rowProfiles = [
+    { minimum: 280, preferred: 0.42, maximum: 460 },
+    { minimum: 150, preferred: 0.27, maximum: 330 },
+    { minimum: 220, preferred: 0.36, maximum: 400 },
+    { minimum: 140, preferred: 0.24, maximum: 290 },
+  ];
   let row: HTMLElement[] = [];
   let aspectSum = 0;
+  let rowIndex = 0;
   let top = 0;
 
   const getAspect = (card: HTMLElement): number => {
     const aspect = Number.parseFloat(card.dataset.photoAspect ?? '');
     return Number.isFinite(aspect) && aspect > 0 ? aspect : 4 / 5;
+  };
+
+  const getTargetRowHeight = (index: number): number => {
+    const profile = rowProfiles[index % rowProfiles.length];
+    return Math.min(
+      profile.maximum,
+      Math.max(profile.minimum, availableWidth * profile.preferred),
+    );
   };
 
   const placeRow = (shouldFill: boolean): void => {
@@ -252,30 +270,24 @@ function layoutGallery(): void {
     const naturalRowHeight = (availableWidth - gapsWidth) / aspectSum;
     const rowHeight = shouldFill
       ? naturalRowHeight
-      : Math.min(targetRowHeight, naturalRowHeight);
+      : Math.min(getTargetRowHeight(rowIndex), naturalRowHeight);
     const rowWidth = rowHeight * aspectSum + gapsWidth;
     let left = shouldFill ? 0 : Math.max(0, (availableWidth - rowWidth) / 2);
-    const placements = row.map((card) => {
-      const width = rowHeight * getAspect(card);
-      const placement = { card, left, width };
-      left += width + columnGap;
-      return placement;
-    });
+    let bottom = top;
 
-    placements.forEach(({ card, left: cardLeft, width }) => {
+    row.forEach((card) => {
+      const width = rowHeight * getAspect(card);
       card.style.position = 'absolute';
       card.style.width = `${width}px`;
-      card.style.transform = `translate3d(${cardLeft}px, ${top}px, 0)`;
+      card.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+      left += width + columnGap;
+      bottom = Math.max(bottom, top + card.getBoundingClientRect().height);
     });
-
-    const bottom = placements.reduce(
-      (currentBottom, { card }) => Math.max(currentBottom, top + card.getBoundingClientRect().height),
-      top,
-    );
 
     top = bottom + rowGap;
     row = [];
     aspectSum = 0;
+    rowIndex += 1;
   };
 
   cards.forEach((card) => {
@@ -286,6 +298,7 @@ function layoutGallery(): void {
     const projectedHeight = (
       availableWidth - columnGap * Math.max(0, row.length - 1)
     ) / aspectSum;
+    const targetRowHeight = getTargetRowHeight(rowIndex);
 
     if (projectedHeight <= targetRowHeight) {
       const previousAspectSum = aspectSum - cardAspect;
@@ -316,7 +329,7 @@ function layoutGallery(): void {
     const projectedHeight = (
       availableWidth - columnGap * Math.max(0, row.length - 1)
     ) / aspectSum;
-    placeRow(row.length > 1 && projectedHeight <= targetRowHeight * 1.16);
+    placeRow(row.length > 1 && projectedHeight <= getTargetRowHeight(rowIndex) * 1.16);
   }
 
   gallery.style.height = `${Math.max(0, top - rowGap)}px`;
