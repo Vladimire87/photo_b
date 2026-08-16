@@ -159,7 +159,7 @@ The opening panel holds one functional cue, the title, one-sentence context, iss
 
 ### Photographic Frames
 
-Frames sit on booth-black apertures and preserve each photograph's natural aspect ratio with `object-fit: contain`. The first frame owns the full photographic stage; later frames vary by editorial span. Failed frames retain their place and explain the error.
+Frames sit on booth-black apertures and preserve each photograph's natural aspect ratio with `object-fit: contain`. The first frame owns the full photographic stage; later frames vary by editorial span. Wide photographs (aspect 1.4+) are automatically promoted to full-width screening bands between rows of smaller frames, without cropping or marker data. Failed frames retain their place and explain the error.
 
 ### Collection Programs
 

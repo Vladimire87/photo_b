@@ -538,6 +538,20 @@ img {
   font-weight: 700;
 }
 
+.photo-card.is-feature .photo-card__number {
+  font-size: 1.05rem;
+}
+
+.photo-card.is-feature .photo-card__number::before {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.55rem;
+  background: var(--signal);
+  content: '';
+  vertical-align: 0.06em;
+}
+
 .photo-card__label {
   grid-area: label;
   overflow-wrap: anywhere;

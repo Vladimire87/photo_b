@@ -19,10 +19,13 @@ https://images.example.com/another-photo.webp
 
 Blank lines and lines beginning with `#` are ignored. When a caption is omitted,
 the card displays only its automatic number. The gallery assigns numbers and
-layout sizes automatically. Keep the source URLs public and hotlinkable; hosts
-that block embedding will show the gallery's unavailable image state. Only the
-selected issue is rendered, and distant photographs are loaded as the visitor
-approaches them.
+layout sizes automatically — wide photographs (aspect ratio 1.4 and above) are
+promoted to full-width feature frames between rows of smaller frames. Reddit
+preview URLs are signed for their exact `width` parameter, so those images are
+served as single responsive candidates instead of generated variants. Keep the
+source URLs public and hotlinkable; hosts that block embedding will show the
+gallery's unavailable image state. Only the selected issue is rendered, and
+distant photographs are loaded as the visitor approaches them.
 
 ## Local development
 
@@ -35,10 +38,14 @@ Open the URL printed by Vite.
 
 ## Analytics
 
-Yandex Metrica counter `111029295` is enabled by default. The tag records normal
-visits and sends each opened photograph as a virtual page view under
+Yandex Metrica counter `111029295` is enabled by default. The tag records visits
+and sends each opened photograph as a virtual page view under
 `/photos/YYYY-NN/XX`. This makes the most-viewed photographs available in the
 regular page reports without creating a separate goal.
+
+Tracking starts only after the visitor confirms the 18+ notice (or has an
+unexpired confirmation from the last 30 days), and never runs on the About
+page. There is no tracking pixel for visitors without JavaScript.
 
 Set `VITE_YANDEX_METRIKA_ID` only when building for a different counter.
 
@@ -48,10 +55,24 @@ Set `VITE_YANDEX_METRIKA_ID` only when building for a different counter.
 npm run test:unit
 npm run test:e2e
 npm run build
+npm run check:images
 ```
 
-The production-ready static files are written to `dist/` and can be published on
-any static host.
+`npm run check:images` verifies that every image URL in `src/data/issues` is
+still reachable and exits with an error when any link is dead. Run it before
+publishing a new issue — external hosts (especially Reddit preview URLs) remove
+or re-sign images over time, and dead photos silently disappear from the
+gallery. The check is intentionally kept out of the automated tests because
+upstream hosts may block datacenter IPs.
+
+The production-ready static files are written to `dist/`, including a generated
+`sitemap.xml` that lists the home page, Collections, About, and every issue.
+
+## Continuous integration
+
+The GitHub Actions workflow in `.github/workflows/ci.yml` runs typechecking,
+unit tests, end-to-end tests, and the production build on every push to `main`
+and on every pull request.
 
 ## Deploy to Cloudflare Pages
 

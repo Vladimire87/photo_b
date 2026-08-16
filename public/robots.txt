@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://photob.pages.dev/sitemap.xml

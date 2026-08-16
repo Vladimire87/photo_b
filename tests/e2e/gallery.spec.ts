@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 
 const galleryImage = Buffer.from(
@@ -23,6 +23,26 @@ function countIssuePhotos(issueSlug: string): number {
       return value !== '' && !value.startsWith('#');
     })
     .length;
+}
+
+function latestIssueSlug(): string {
+  return readdirSync(new URL('../../src/data/issues', import.meta.url))
+    .map((name) => name.match(/^(\d{4}-\d{2})\.txt$/)?.[1])
+    .filter((slug): slug is string => Boolean(slug))
+    .sort()
+    .at(-1)!;
+}
+
+function firstIssuePhotoUrl(issueSlug: string): string {
+  return readFileSync(
+    new URL(`../../src/data/issues/${issueSlug}.txt`, import.meta.url),
+    'utf8',
+  )
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find((line) => line !== '' && !line.startsWith('#'))!
+    .split('|')[0]
+    .trim();
 }
 
 async function acceptMaturity(page: Page): Promise<void> {
@@ -121,7 +141,19 @@ test('renders the complete editorial gallery without horizontal overflow', async
   expect(await page.locator('.photo-card img').nth(0).getAttribute('loading')).toBe('eager');
   expect(await page.locator('.photo-card img').nth(2).getAttribute('loading')).toBe('lazy');
   await expect(page.locator('.photo-card img').first()).toHaveAttribute('sizes', /100vw/);
-  await expect(page.locator('.photo-card img').first()).toHaveAttribute('srcset', /480w/);
+
+  const latestSlug = latestIssueSlug();
+  const firstPhotoUrl = firstIssuePhotoUrl(latestSlug);
+  const firstPhotoWidth = new URL(firstPhotoUrl).searchParams.get('width');
+
+  if (firstPhotoWidth) {
+    await expect(page.locator('.photo-card img').first()).toHaveAttribute(
+      'srcset',
+      `${firstPhotoUrl} ${firstPhotoWidth}w`,
+    );
+  } else {
+    await expect(page.locator('.photo-card img').first()).not.toHaveAttribute('srcset', /.+/);
+  }
 
   const dimensions = await page.evaluate(() => ({
     viewport: window.innerWidth,
@@ -248,24 +280,58 @@ test('keeps mixed aspect ratios visible without forcing the first photo to fill 
       first: cards[0],
       second: cards[1],
       firstMediaHeight: document.querySelector('.photo-card__media')!.getBoundingClientRect().height,
+      secondMediaHeight: document.querySelectorAll('.photo-card__media')[1]!.getBoundingClientRect().height,
       overflow: document.documentElement.scrollWidth - window.innerWidth,
     };
   });
 
   if (page.viewportSize()!.width > 680) {
-    expect(composition.first.top).toBeCloseTo(composition.second.top, 0);
     expect(composition.first.width).toBeLessThan(
       (composition.galleryRight - composition.galleryLeft) * 0.4,
     );
-    expect(composition.second.width).toBeGreaterThan(composition.first.width * 2);
     expect(composition.first.left).toBeGreaterThanOrEqual(composition.galleryLeft - 1);
-    expect(composition.second.right).toBeLessThanOrEqual(composition.galleryRight + 1);
+    expect(composition.second.width).toBeGreaterThan(
+      (composition.galleryRight - composition.galleryLeft) * 0.9,
+    );
+    expect(composition.second.top).toBeGreaterThan(composition.first.top);
+    expect(
+      Math.abs(composition.secondMediaHeight - composition.second.width / 2),
+    ).toBeLessThanOrEqual(3);
   } else {
     expect(composition.first.width).toBeGreaterThanOrEqual(page.viewportSize()!.width - 1);
     expect(composition.firstMediaHeight).toBeGreaterThan(composition.first.width * 1.3);
   }
 
   expect(composition.overflow).toBeLessThanOrEqual(1);
+});
+
+test('keeps a wide first photograph from overflowing its solo row', async ({ page }) => {
+  await page.setViewportSize({ width: 700, height: 800 });
+  await acceptMaturity(page);
+
+  await page.route('https://**/*', async (route) => {
+    if (route.request().resourceType() === 'image') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        headers: { 'cache-control': 'no-store' },
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="700"></svg>',
+      });
+      return;
+    }
+
+    await route.continue();
+  });
+
+  await page.goto('/');
+  await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
+
+  const dimensions = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    document: document.documentElement.scrollWidth,
+  }));
+
+  expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport + 1);
 });
 
 test('does not request distant photos until they approach the viewport', async ({ page }) => {

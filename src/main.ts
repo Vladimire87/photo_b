@@ -8,8 +8,6 @@ import {
   type PhotoEntry,
 } from './gallery';
 
-initializeAnalytics();
-
 interface IssueSource {
   slug: string;
   year: number;
@@ -105,6 +103,7 @@ let unobservePhotoCard: ((card: HTMLElement) => void) | undefined;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const galleryImageSizes = '(max-width: 680px) 100vw, (max-width: 1100px) 66vw, 75vw';
 const collectionImageSizes = '(max-width: 680px) 100vw, (max-width: 1100px) 58vw, 67vw';
+const featureAspectThreshold = 1.4;
 const maturityStorageKey = 'photo-b-maturity-confirmed';
 const maturityStorageLifetime = 30 * 24 * 60 * 60 * 1000;
 const maturityGuardedRegions = [siteHeader, siteMain, siteFooter];
@@ -226,15 +225,16 @@ function getResponsiveImageSources(url: string, sizes: string): ResponsiveImageS
       return { sizes };
     }
 
-    const srcset = [480, 768, 1080]
-      .map((width) => {
-        const candidateUrl = new URL(sourceUrl);
-        candidateUrl.searchParams.set('width', String(width));
-        return `${candidateUrl.href} ${width}w`;
-      })
-      .join(', ');
+    const originalWidth = Number(sourceUrl.searchParams.get('width'));
 
-    return { sizes, srcset };
+    if (!Number.isSafeInteger(originalWidth) || originalWidth <= 0) {
+      return { sizes };
+    }
+
+    return {
+      sizes,
+      srcset: `${sourceUrl.href} ${originalWidth}w`,
+    };
   } catch {
     return { sizes };
   }
@@ -295,6 +295,12 @@ function setActiveNavigation(link: HTMLAnchorElement): void {
   link.setAttribute('aria-current', 'page');
 }
 
+function setCanonicalPath(path: string): void {
+  const canonicalLink = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  const canonicalBase = new URL(canonicalLink?.href ?? 'https://photob.pages.dev/');
+  canonicalLink?.setAttribute('href', new URL(path, canonicalBase).href);
+}
+
 issueNumber.textContent = formatPhotoNumber(activeIssue.number);
 heroIssueNumber.textContent = formatPhotoNumber(activeIssue.number);
 issueYear.textContent = String(activeIssue.year);
@@ -320,15 +326,38 @@ if (pageView === 'collections') {
   setActiveNavigation(latestLink);
 }
 
+setCanonicalPath(
+  pageView === 'gallery'
+    ? activeIssueIndex === issues.length - 1
+      ? '/'
+      : `/?issue=${activeIssue.slug}`
+    : `/?view=${pageView}`,
+);
+
 parsed.warnings.forEach((warning) => console.warn(`[PHOTO B] ${warning}`));
 
 function updateViewCount(current: number, total: number): void {
   viewCount.textContent = `PHOTO ${formatPhotoNumber(current)} / ${formatPhotoNumber(total)}`;
 }
 
+function classifyFeatureFrames(cards: HTMLElement[]): void {
+  let previousWasFeature = false;
+
+  cards.forEach((card, index) => {
+    const aspect = Number.parseFloat(card.dataset.photoAspect ?? '');
+    const isFeature = index > 0
+      && !previousWasFeature
+      && Number.isFinite(aspect)
+      && aspect >= featureAspectThreshold;
+    card.classList.toggle('is-feature', isFeature);
+    previousWasFeature = isFeature;
+  });
+}
+
 function layoutGallery(): void {
   layoutFrame = undefined;
   const cards = [...gallery.querySelectorAll<HTMLElement>('.photo-card')];
+  classifyFeatureFrames(cards);
 
   if (window.matchMedia('(max-width: 680px)').matches) {
     gallery.style.removeProperty('height');
@@ -373,6 +402,8 @@ function layoutGallery(): void {
     );
   };
 
+  const getSoloRowHeight = (): number => Math.min(640, Math.max(360, availableWidth * 0.55));
+
   const placeRow = (shouldFill: boolean): void => {
     if (row.length === 0) {
       return;
@@ -382,7 +413,9 @@ function layoutGallery(): void {
     const naturalRowHeight = (availableWidth - gapsWidth) / aspectSum;
     const rowHeight = shouldFill
       ? naturalRowHeight
-      : Math.min(getTargetRowHeight(rowIndex), naturalRowHeight);
+      : row.length === 1
+        ? Math.min(getSoloRowHeight(), naturalRowHeight)
+        : Math.min(getTargetRowHeight(rowIndex), naturalRowHeight);
     const rowWidth = rowHeight * aspectSum + gapsWidth;
     let left = shouldFill ? 0 : Math.max(0, (availableWidth - rowWidth) / 2);
     let bottom = top;
@@ -402,7 +435,22 @@ function layoutGallery(): void {
     rowIndex += 1;
   };
 
+  const placeFeature = (card: HTMLElement): void => {
+    const width = availableWidth;
+    card.style.position = 'absolute';
+    card.style.width = `${width}px`;
+    card.style.transform = `translate3d(0, ${top}px, 0)`;
+    top += card.getBoundingClientRect().height + rowGap;
+    rowIndex += 1;
+  };
+
   cards.forEach((card) => {
+    if (card.classList.contains('is-feature')) {
+      placeRow(false);
+      placeFeature(card);
+      return;
+    }
+
     const cardAspect = getAspect(card);
     row.push(card);
     aspectSum += cardAspect;
@@ -717,6 +765,10 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
 }
 
 const maturityGateWasShown = await requestMaturityConfirmation();
+
+if (pageView === 'gallery' || pageView === 'collections') {
+  initializeAnalytics();
+}
 
 if (pageView === 'collections') {
   await renderCollections();
