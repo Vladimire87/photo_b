@@ -411,11 +411,9 @@ function layoutGallery(): void {
 
     const gapsWidth = columnGap * Math.max(0, row.length - 1);
     const naturalRowHeight = (availableWidth - gapsWidth) / aspectSum;
-    const rowHeight = shouldFill
+    const rowHeight = shouldFill || row.length > 1
       ? naturalRowHeight
-      : row.length === 1
-        ? Math.min(getSoloRowHeight(), naturalRowHeight)
-        : Math.min(getTargetRowHeight(rowIndex), naturalRowHeight);
+      : Math.min(getSoloRowHeight(), naturalRowHeight);
     const rowWidth = rowHeight * aspectSum + gapsWidth;
     let left = shouldFill ? 0 : Math.max(0, (availableWidth - rowWidth) / 2);
     let bottom = top;
@@ -436,15 +434,19 @@ function layoutGallery(): void {
   };
 
   const placeFeature = (card: HTMLElement): void => {
-    const width = availableWidth;
+    const aspect = getAspect(card);
+    const maxHeight = Math.max(360, window.innerHeight - 128);
+    const height = Math.min(availableWidth / aspect, maxHeight);
+    const width = height * aspect;
+    const left = Math.max(0, (availableWidth - width) / 2);
     card.style.position = 'absolute';
     card.style.width = `${width}px`;
-    card.style.transform = `translate3d(0, ${top}px, 0)`;
+    card.style.transform = `translate3d(${left}px, ${top}px, 0)`;
     top += card.getBoundingClientRect().height + rowGap;
     rowIndex += 1;
   };
 
-  cards.forEach((card) => {
+  cards.forEach((card, index) => {
     if (card.classList.contains('is-feature')) {
       placeRow(false);
       placeFeature(card);
@@ -470,6 +472,7 @@ function layoutGallery(): void {
 
       if (
         row.length > 1
+        && !cards[index + 1]?.classList.contains('is-feature')
         && Math.abs(previousHeight - targetRowHeight)
           <= Math.abs(projectedHeight - targetRowHeight)
       ) {
@@ -486,10 +489,7 @@ function layoutGallery(): void {
   });
 
   if (row.length > 0) {
-    const projectedHeight = (
-      availableWidth - columnGap * Math.max(0, row.length - 1)
-    ) / aspectSum;
-    placeRow(row.length > 1 && projectedHeight <= getTargetRowHeight(rowIndex) * 1.16);
+    placeRow(row.length > 1);
   }
 
   gallery.style.height = `${Math.max(0, top - rowGap)}px`;

@@ -334,6 +334,118 @@ test('keeps a wide first photograph from overflowing its solo row', async ({ pag
   expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport + 1);
 });
 
+test('fills the row that a wide feature photograph interrupts', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'The masonry gallery layout only applies on desktop.');
+  await page.setViewportSize({ width: 1728, height: 1117 });
+  await acceptMaturity(page);
+
+  const dimensionsByMarker: Record<string, [number, number]> = {
+    'pbxnq8x2njdh1': [0, 0],
+    'charleen-weiss': [1080, 1440],
+    'inde-navarrette': [794, 1140],
+    'yB1ny0WT4LQUZ0A1bJaPD6hAp1jD': [640, 758],
+    'sisse-marie': [640, 960],
+    'anastasiia': [640, 960],
+    'sara-sampaio': [640, 399],
+  };
+
+  await page.route('https://**/*', async (route) => {
+    if (route.request().resourceType() === 'image') {
+      const url = route.request().url();
+      const marker = Object.keys(dimensionsByMarker).find((key) => url.includes(key));
+
+      if (marker === 'pbxnq8x2njdh1') {
+        await route.fulfill({
+          status: 404,
+          contentType: 'image/svg+xml',
+          body: deletedImagePlaceholder,
+        });
+        return;
+      }
+
+      const [width, height] = marker ? dimensionsByMarker[marker] : [640, 960];
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        headers: { 'cache-control': 'no-store' },
+        body: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"></svg>`,
+      });
+      return;
+    }
+
+    await route.continue();
+  });
+
+  await page.goto('/?issue=2026-02');
+  await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
+
+  const row = await page.evaluate(() => {
+    const gallery = document.querySelector('#gallery')!.getBoundingClientRect();
+    const cards = [...document.querySelectorAll<HTMLElement>('.photo-card')];
+    const sisse = cards.find((card) => card.dataset.caption === 'Sisse Marie')!;
+    const anastasiia = cards.find((card) => card.dataset.caption === 'Anastasiia')!;
+    const sisseBounds = sisse.getBoundingClientRect();
+    const anastasiiaBounds = anastasiia.getBoundingClientRect();
+
+    return {
+      sameRow: Math.abs(sisseBounds.top - anastasiiaBounds.top) < 2,
+      span: Math.max(sisseBounds.right, anastasiiaBounds.right)
+        - Math.min(sisseBounds.left, anastasiiaBounds.left),
+      galleryWidth: gallery.width,
+      sisseWidth: sisseBounds.width,
+      anastasiiaWidth: anastasiiaBounds.width,
+    };
+  });
+
+  expect(row.sameRow).toBe(true);
+  expect(row.span).toBeGreaterThan(row.galleryWidth * 0.9);
+  expect(row.sisseWidth).toBeGreaterThan(row.galleryWidth * 0.4);
+  expect(row.anastasiiaWidth).toBeGreaterThan(row.galleryWidth * 0.4);
+});
+
+test('keeps a wide feature photograph within the viewport on ultra-wide screens', async ({ page }) => {
+  await page.setViewportSize({ width: 3440, height: 1440 });
+  await acceptMaturity(page);
+
+  await page.route('https://**/*', async (route) => {
+    if (route.request().resourceType() === 'image') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        headers: { 'cache-control': 'no-store' },
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1000"></svg>',
+      });
+      return;
+    }
+
+    await route.continue();
+  });
+
+  await page.goto('/');
+  await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
+
+  const featureMetrics = await page.evaluate(() => {
+    const gallery = document.querySelector('#gallery')!.getBoundingClientRect();
+    const card = document.querySelector<HTMLElement>('.photo-card.is-feature')!;
+    const bounds = card.getBoundingClientRect();
+
+    return {
+      height: bounds.height,
+      left: bounds.left,
+      right: bounds.right,
+      galleryLeft: gallery.left,
+      galleryRight: gallery.right,
+      viewportHeight: window.innerHeight,
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+    };
+  });
+
+  expect(featureMetrics.height).toBeLessThanOrEqual(featureMetrics.viewportHeight);
+  expect(featureMetrics.left).toBeGreaterThanOrEqual(featureMetrics.galleryLeft - 1);
+  expect(featureMetrics.right).toBeLessThanOrEqual(featureMetrics.galleryRight + 1);
+  expect(featureMetrics.overflow).toBeLessThanOrEqual(1);
+});
+
 test('does not request distant photos until they approach the viewport', async ({ page }) => {
   const requestedImages: string[] = [];
   await mockImages(page, (url) => requestedImages.push(url));
