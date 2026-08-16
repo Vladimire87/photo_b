@@ -1241,9 +1241,14 @@ img {
 }
 
 @media (max-width: 380px) {
+  .issue-switcher {
+    grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
+  }
+
   #issue-label {
     gap: 0.1rem;
-    font-size: 0.62rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.02em;
   }
 
   #issue-number {
