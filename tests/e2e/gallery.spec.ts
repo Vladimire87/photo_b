@@ -527,7 +527,7 @@ test('renders the collections archive and opens an issue', async ({ page }) => {
   await expect(page.locator('#issue-label')).toContainText(/Issue \d{2}/);
 });
 
-test('keeps gallery and collection images still on hover', async ({ page }) => {
+test('keeps gallery images still on hover while the projector lamp brightens them', async ({ page }) => {
   await mockImages(page);
   await page.goto('/');
 
@@ -537,12 +537,25 @@ test('keeps gallery and collection images still on hover', async ({ page }) => {
     const styles = getComputedStyle(image);
     return { filter: styles.filter, transform: styles.transform };
   });
+  const canHover = await page.evaluate(() => window.matchMedia('(hover: hover)').matches);
   await galleryImage.locator('..').hover();
-  const galleryStyleAfterHover = await galleryImage.evaluate((image) => {
-    const styles = getComputedStyle(image);
-    return { filter: styles.filter, transform: styles.transform };
-  });
-  expect(galleryStyleAfterHover).toEqual(galleryStyleBeforeHover);
+
+  if (canHover) {
+    await expect.poll(
+      () => galleryImage.evaluate((image) => getComputedStyle(image).filter),
+    ).toBe('brightness(1.08)');
+    const galleryStyleAfterHover = await galleryImage.evaluate((image) => {
+      const styles = getComputedStyle(image);
+      return { transform: styles.transform };
+    });
+    expect(galleryStyleAfterHover.transform).toBe(galleryStyleBeforeHover.transform);
+  } else {
+    const galleryStyleAfterHover = await galleryImage.evaluate((image) => {
+      const styles = getComputedStyle(image);
+      return { filter: styles.filter, transform: styles.transform };
+    });
+    expect(galleryStyleAfterHover).toEqual(galleryStyleBeforeHover);
+  }
 
   await page.goto('/?view=collections');
   const collectionImage = page.locator('.collection-card__media img').first();
@@ -762,36 +775,43 @@ test('removes gallery and lightbox motion for reduced-motion users', async ({ pa
   await page.keyboard.press('Escape');
 });
 
-test('removes a failed external image and rebuilds the gallery sequence', async ({ page }) => {
+test('keeps a failed photo frame in place with stable numbering', async ({ page }) => {
   await mockImages(page);
   await page.goto('/');
 
   const firstCard = page.locator('.photo-card').first();
   const photoCount = await page.locator('.photo-card').count();
   await expect(firstCard).toHaveClass(/is-loaded/);
-  const removedPhotoAlt = await firstCard.locator('img').getAttribute('alt');
   await firstCard.locator('img').evaluate((image) => image.dispatchEvent(new Event('error')));
-  await expect(page.getByAltText(removedPhotoAlt!)).toHaveCount(0);
-  await expect(page.locator('.photo-card')).toHaveCount(photoCount - 1);
+  await expect(firstCard).toHaveClass(/is-error/);
+  await expect(firstCard.locator('.photo-card__media')).not.toHaveAttribute('href', /.+/);
+  const failedMediaContent = await firstCard.locator('.photo-card__media').evaluate(
+    (media) => getComputedStyle(media, '::after').content,
+  );
+  expect(failedMediaContent).toContain('FRAME UNAVAILABLE');
+  await expect(page.locator('.photo-card')).toHaveCount(photoCount);
   await expect(page.locator('.photo-card').first().locator('.photo-card__number')).toHaveText('01');
+  await expect(page.locator('.photo-card').nth(1).locator('.photo-card__number')).toHaveText('02');
   await expect(page.locator('#view-count')).toHaveText(
-    `PHOTO 01 / ${String(photoCount - 1).padStart(2, '0')}`,
+    `PHOTO 01 / ${String(photoCount).padStart(2, '0')}`,
   );
 
-  await page.locator('.photo-card__media').first().click();
+  await page.locator('.photo-card__media').nth(1).click();
   await expect(page.locator('.glightbox-container')).toBeVisible();
   await expect(page.locator('.glightbox-container .gslide')).toHaveCount(photoCount - 1);
 });
 
-test('removes a deletion placeholder returned as a valid image body', async ({ page }) => {
+test('keeps a deletion placeholder frame in place with an error notice', async ({ page }) => {
   const deletedUrl = 'pbxnq8x2njdh1.jpeg';
   const expectedPhotoCount = countIssuePhotos('2026-01');
   await mockImages(page, undefined, deletedUrl);
   await page.goto('/?issue=2026-01');
 
-  await expect(page.locator(`img[src*="${deletedUrl}"]`)).toHaveCount(0);
-  await expect(page.locator('.photo-card')).toHaveCount(expectedPhotoCount - 1);
+  await expect(page.locator(`img[src*="${deletedUrl}"]`)).toHaveCount(1);
+  await expect(page.locator('.photo-card')).toHaveCount(expectedPhotoCount);
+  const failedCard = page.locator(`.photo-card:has(img[src*="${deletedUrl}"])`);
+  await expect(failedCard).toHaveClass(/is-error/);
   await expect(page.locator('#view-count')).toHaveText(
-    `PHOTO 01 / ${String(expectedPhotoCount - 1).padStart(2, '0')}`,
+    `PHOTO 01 / ${String(expectedPhotoCount).padStart(2, '0')}`,
   );
 });

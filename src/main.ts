@@ -76,6 +76,7 @@ const issueNumber = getRequiredElement<HTMLElement>('#issue-number');
 const issueYear = getRequiredElement<HTMLElement>('#issue-year');
 const heroIssueNumber = getRequiredElement<HTMLElement>('#hero-issue-number');
 const heroYear = getRequiredElement<HTMLElement>('#hero-year');
+const heroProgramLabel = getRequiredElement<HTMLElement>('#hero-program-label');
 const previousIssueLink = getRequiredElement<HTMLAnchorElement>('#previous-issue');
 const nextIssueLink = getRequiredElement<HTMLAnchorElement>('#next-issue');
 const issueSwitcher = getRequiredElement<HTMLElement>('.issue-switcher');
@@ -86,6 +87,11 @@ const galleryPage = getRequiredElement<HTMLElement>('#gallery-page');
 const collectionsPage = getRequiredElement<HTMLElement>('#collections-page');
 const collectionsGrid = getRequiredElement<HTMLElement>('#collections-grid');
 const aboutPage = getRequiredElement<HTMLElement>('#about-page');
+const programEnd = getRequiredElement<HTMLElement>('#program-end');
+const programEndIssue = getRequiredElement<HTMLElement>('#program-end-issue');
+const programEndYear = getRequiredElement<HTMLElement>('#program-end-year');
+const programEndPrimary = getRequiredElement<HTMLAnchorElement>('#program-end-primary');
+const programEndSecondary = getRequiredElement<HTMLAnchorElement>('#program-end-secondary');
 const latestLink = getRequiredElement<HTMLAnchorElement>('#latest-link');
 const collectionsLink = getRequiredElement<HTMLAnchorElement>('#collections-link');
 const aboutLink = getRequiredElement<HTMLAnchorElement>('#about-link');
@@ -301,10 +307,43 @@ function setCanonicalPath(path: string): void {
   canonicalLink?.setAttribute('href', new URL(path, canonicalBase).href);
 }
 
+function configureProgramEnd(): void {
+  if (pageView !== 'gallery') {
+    programEnd.hidden = true;
+    return;
+  }
+
+  programEndIssue.textContent = formatPhotoNumber(activeIssue.number);
+  programEndYear.textContent = String(activeIssue.year);
+
+  const nextIssue = issues[activeIssueIndex + 1];
+  const previousIssue = issues[activeIssueIndex - 1];
+
+  if (nextIssue) {
+    programEndPrimary.href = `?issue=${nextIssue.slug}`;
+    programEndPrimary.textContent = `Next issue — ${formatPhotoNumber(nextIssue.number)} / ${nextIssue.year}`;
+    programEndSecondary.href = '?view=collections';
+    programEndSecondary.textContent = 'Collections';
+    programEndSecondary.hidden = false;
+  } else {
+    programEndPrimary.href = '?view=collections';
+    programEndPrimary.textContent = 'Collections';
+
+    if (previousIssue) {
+      programEndSecondary.href = `?issue=${previousIssue.slug}`;
+      programEndSecondary.textContent = `Previous issue — ${formatPhotoNumber(previousIssue.number)} / ${previousIssue.year}`;
+      programEndSecondary.hidden = false;
+    } else {
+      programEndSecondary.hidden = true;
+    }
+  }
+}
+
 issueNumber.textContent = formatPhotoNumber(activeIssue.number);
 heroIssueNumber.textContent = formatPhotoNumber(activeIssue.number);
 issueYear.textContent = String(activeIssue.year);
 heroYear.textContent = String(activeIssue.year);
+heroProgramLabel.textContent = activeIssueIndex === issues.length - 1 ? 'Latest issue' : 'Earlier issue';
 configureIssueLink(previousIssueLink, issues[activeIssueIndex - 1], 'Previous');
 configureIssueLink(nextIssueLink, issues[activeIssueIndex + 1], 'Next');
 
@@ -333,6 +372,8 @@ setCanonicalPath(
       : `/?issue=${activeIssue.slug}`
     : `/?view=${pageView}`,
 );
+
+configureProgramEnd();
 
 parsed.warnings.forEach((warning) => console.warn(`[PHOTO B] ${warning}`));
 
@@ -541,8 +582,12 @@ function refreshPhotoSequence(): void {
     }
 
     if (link) {
-      link.dataset.title = caption ? `${number} — ${caption}` : `Photo ${number}`;
-      link.setAttribute('aria-label', `Open photo ${number} in full-screen gallery`);
+      if (card.classList.contains('is-error')) {
+        link.setAttribute('aria-label', `Photo ${number} is unavailable`);
+      } else {
+        link.dataset.title = caption ? `${number} — ${caption}` : `Photo ${number}`;
+        link.setAttribute('aria-label', `Open photo ${number} in full-screen gallery`);
+      }
     }
 
     if (image) {
@@ -550,14 +595,21 @@ function refreshPhotoSequence(): void {
     }
   });
 
-  if (cards.length === 0) {
+  const failedCount = cards.filter((card) => card.classList.contains('is-error')).length;
+  const allFailed = cards.length > 0 && failedCount === cards.length;
+
+  if (cards.length === 0 || allFailed) {
     gallery.hidden = true;
     emptyState.hidden = false;
     emptyState.querySelector('h2')!.textContent = 'Photographs unavailable.';
     emptyState.querySelector('p')!.textContent = 'The image files for this issue could not be loaded.';
+    programEnd.hidden = true;
     updateViewCount(0, 0);
   } else {
+    gallery.hidden = false;
+    emptyState.hidden = true;
     lastViewedPhotoIndex = Math.min(lastViewedPhotoIndex, cards.length - 1);
+    programEnd.hidden = false;
     updateViewCount(lastViewedPhotoIndex + 1, cards.length);
   }
 
@@ -694,7 +746,12 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
   const markFailed = (): void => {
     lazyImageObserver?.unobserve(image);
     unobservePhotoCard?.(figure);
-    figure.remove();
+    figure.classList.remove('is-loading');
+    figure.classList.add('is-error');
+    link.removeAttribute('href');
+    link.classList.remove('glightbox');
+    link.setAttribute('aria-disabled', 'true');
+    link.setAttribute('aria-label', `Photo ${number} is unavailable`);
     refreshPhotoSequence();
   };
 
@@ -789,6 +846,7 @@ if (pageView === 'collections') {
     hydrateLazyImage(image);
   });
   updateViewCount(1, parsed.photos.length);
+  programEnd.hidden = false;
   scheduleGalleryLayout();
 
   const resizeObserver = new ResizeObserver(scheduleGalleryLayout);

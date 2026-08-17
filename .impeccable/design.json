@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-25T17:56:07+03:00",
+  "generatedAt": "2026-08-17T09:45:00Z",
   "title": "Design System: PHOTO B",
   "extensions": {
     "colorMeta": {
@@ -110,6 +110,11 @@
         "name": "state-change",
         "value": "180ms ease",
         "purpose": "Navigation and cue-state color changes."
+      },
+      {
+        "name": "projector-lamp",
+        "value": "220ms ease",
+        "purpose": "A loaded frame brightens like a projector lamp on hover without lifting the card."
       }
     ],
     "breakpoints": [
@@ -132,9 +137,9 @@
       "name": "Entry Control",
       "kind": "button",
       "refersTo": "entry-control",
-      "description": "Projector-yellow action that advances from program context into the issue.",
-      "html": "<a class=\"ds-entry\" href=\"#\">ENTER ISSUE <span aria-hidden=\"true\">↓</span></a>",
-      "css": ".ds-entry { display:flex; min-height:56px; align-items:center; justify-content:space-between; padding:12px 14px; color:#050A12; background:#FFD84A; font:700 13px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.06em; text-decoration:none; } .ds-entry:hover { background:#F4F3ED; } .ds-entry:focus-visible { outline:3px solid #FFD84A; outline-offset:3px; }"
+      "description": "Projector-yellow action that advances the visitor between programs (enter issue, next issue, collections). A quiet bordered variant covers secondary exits.",
+      "html": "<a class=\"ds-entry\" href=\"#\">NEXT ISSUE — 03 / 2026</a><a class=\"ds-entry ds-entry--quiet\" href=\"#\">COLLECTIONS</a>",
+      "css": ".ds-entry { display:inline-flex; min-height:56px; align-items:center; justify-content:center; gap:12px; padding:12px 14px; border:1px solid transparent; color:#050A12; background:#FFD84A; font:700 13px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.06em; text-decoration:none; text-transform:uppercase; transition:background-color .18s ease,color .18s ease,border-color .18s ease; } .ds-entry:hover { background:#F4F3ED; } .ds-entry:focus-visible { outline:3px solid #FFD84A; outline-offset:-3px; } .ds-entry--quiet { border-color:rgba(244,243,237,.64); color:#F4F3ED; background:transparent; } .ds-entry--quiet:hover { border-color:#FFD84A; color:#FFD84A; background:transparent; }"
     },
     {
       "name": "Primary Navigation",
@@ -156,7 +161,7 @@
       "kind": "card",
       "description": "Square-edged black aperture that preserves the photograph's natural ratio.",
       "html": "<figure class=\"ds-frame\"><div class=\"ds-aperture\">PHOTOGRAPH</div><figcaption><strong>01</strong><span>FRAME CAPTION</span></figcaption></figure>",
-      "css": ".ds-frame { margin:0; color:#91A6CA; background:#081A40; font:600 12px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.045em; } .ds-aperture { aspect-ratio:4/3; display:grid; place-items:center; color:#91A6CA; background:#050A12; border:1px solid rgba(145,166,202,.42); } .ds-frame figcaption { display:flex; gap:12px; padding-top:10px; border-top:1px solid rgba(145,166,202,.42); } .ds-frame strong { color:#FFD84A; } .ds-frame:focus-within { outline:3px solid #FFD84A; }"
+      "css": ".ds-frame { margin:0; color:#91A6CA; background:#081A40; font:600 12px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.045em; } .ds-aperture { position:relative; aspect-ratio:4/3; display:grid; place-items:center; color:#91A6CA; background:#050A12; border:1px solid rgba(145,166,202,.42); transition:border-color .22s ease; } .ds-frame figcaption { display:flex; gap:12px; padding-top:10px; border-top:1px solid rgba(145,166,202,.42); } .ds-frame strong { color:#FFD84A; } .ds-frame:focus-within { outline:3px solid #FFD84A; } .ds-frame.is-error .ds-aperture::after { content:'FRAME UNAVAILABLE'; font-size:11px; letter-spacing:.08em; } .ds-frame.is-error .ds-aperture { color:rgba(145,166,202,.6); } .ds-frame.is-error strong { color:#91A6CA; }"
     },
     {
       "name": "Current Issue Marker",
@@ -164,6 +169,13 @@
       "description": "Compact rectangular state label used only for the latest program.",
       "html": "<span class=\"ds-latest\">LATEST</span>",
       "css": ".ds-latest { display:inline-block; padding:8px 11px; color:#050A12; background:#FFD84A; font:700 12px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.05em; }"
+    },
+    {
+      "name": "Program End",
+      "kind": "custom",
+      "description": "Square closure block after the final frame: end-of-program cue, issue marker, one sentence of closure, and the exit controls.",
+      "html": "<section class=\"ds-program-end\"><span class=\"ds-program-end__cue\">END OF PROGRAM</span><h2>ISSUE 02 / 2026</h2><p>That's every photograph in this issue.</p><a class=\"ds-entry\" href=\"#\">NEXT ISSUE — 03 / 2026</a><a class=\"ds-entry ds-entry--quiet\" href=\"#\">COLLECTIONS</a></section>",
+      "css": ".ds-program-end { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px 48px; align-items:end; padding:28px; color:#F4F3ED; background:#081A40; border:1px solid rgba(145,166,202,.42); } .ds-program-end__cue { grid-column:1; display:flex; align-items:center; gap:12px; color:#91A6CA; font:600 12px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.08em; text-transform:uppercase; } .ds-program-end__cue::before { content:''; width:8px; height:8px; flex:0 0 auto; background:#FFD84A; } .ds-program-end h2 { grid-column:1; margin:18px 0 0; font:400 30px/.9 'Archivo Black',Arial Black,sans-serif; letter-spacing:-.035em; text-transform:uppercase; } .ds-program-end p { grid-column:1; margin:18px 0 0; max-width:30rem; color:#91A6CA; font:400 15px/1.6 'Spline Sans',Arial,sans-serif; } .ds-program-end .ds-entry { grid-column:2; grid-row:1 / 4; margin-top:8px; } .ds-program-end .ds-entry + .ds-entry { grid-row:4; margin-top:0; }"
     }
   ],
   "narrative": {

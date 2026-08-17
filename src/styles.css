@@ -66,7 +66,7 @@ img {
   top: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: minmax(15rem, 1.25fr) minmax(24rem, 2fr) minmax(22rem, 1.45fr) minmax(9rem, 0.7fr);
+  grid-template-columns: minmax(12rem, 1.25fr) minmax(20rem, 2fr) minmax(18rem, 1.45fr) minmax(8rem, 0.7fr);
   gap: var(--module-gap);
   padding: var(--module-gap);
   background: var(--line);
@@ -241,6 +241,7 @@ img {
 .issue-switcher__control:focus-visible,
 .collection-card__link:focus-visible,
 .photo-card__media:focus-visible,
+.entry-control:focus-visible,
 .maturity-gate__action:focus-visible {
   position: relative;
   z-index: 2;
@@ -476,6 +477,7 @@ img {
   aspect-ratio: var(--photo-aspect, 4 / 5);
   cursor: zoom-in;
   background: var(--aperture);
+  transition: border-color 220ms ease;
 }
 
 .photo-card__media::before {
@@ -487,6 +489,24 @@ img {
   animation: projector-warmup 1.3s ease-in-out infinite alternate;
 }
 
+.photo-card__media::after {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  color: var(--reel);
+  content: 'FRAME UNAVAILABLE';
+  font-family: 'Archivo Narrow', Arial Narrow, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  text-align: center;
+  text-transform: uppercase;
+  transform: translate(-50%, -50%);
+}
+
 .photo-card img {
   position: relative;
   z-index: 1;
@@ -496,7 +516,7 @@ img {
   opacity: 0;
   object-fit: contain;
   transform: scale(1.008);
-  transition: opacity 420ms ease;
+  transition: opacity 420ms ease, filter 220ms ease;
 }
 
 .photo-card.is-loaded img {
@@ -507,6 +527,27 @@ img {
 .photo-card.is-loaded .photo-card__media::before {
   animation: none;
   opacity: 0;
+}
+
+.photo-card.is-error .photo-card__media {
+  cursor: default;
+}
+
+.photo-card.is-error .photo-card__media::before {
+  animation: none;
+  opacity: 0;
+}
+
+.photo-card.is-error .photo-card__media::after {
+  opacity: 1;
+}
+
+.photo-card.is-error .photo-card__meta {
+  color: rgba(145, 166, 202, 0.6);
+}
+
+.photo-card.is-error .photo-card__number {
+  color: var(--reel);
 }
 
 .photo-card__meta {
@@ -821,6 +862,113 @@ img {
   font-size: 0.9rem;
 }
 
+.program-end {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem clamp(2rem, 4vw, 5rem);
+  align-items: end;
+  margin-top: clamp(2rem, 3.2vw, 4rem);
+  padding: clamp(1.4rem, 2vw, 2.2rem);
+  border: 1px solid var(--line);
+  background: var(--room);
+}
+
+.program-end__head {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.program-end__cue {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  color: var(--reel);
+  font-family: 'Archivo Narrow', Arial Narrow, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.program-end__cue::after {
+  height: 1px;
+  flex: 1;
+  background: var(--line);
+  content: '';
+}
+
+.program-end__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: 0 0 auto;
+  background: var(--signal);
+}
+
+.program-end__title {
+  margin: 0;
+  font-family: 'Archivo Black', Arial Black, sans-serif;
+  font-size: clamp(1.6rem, 2.4vw, 2.6rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.program-end__copy {
+  max-width: 30rem;
+  margin: 0;
+  color: var(--reel);
+  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+  line-height: 1.6;
+}
+
+.program-end__actions {
+  display: grid;
+  grid-row: 1 / 3;
+  grid-column: 2;
+  gap: 0.75rem;
+  min-width: min(20rem, 100%);
+  align-content: end;
+}
+
+.entry-control {
+  display: inline-flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid transparent;
+  color: var(--aperture);
+  background: var(--signal);
+  font-family: 'Archivo Narrow', Arial Narrow, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+
+.entry-control:hover {
+  color: var(--aperture);
+  background: var(--screen);
+}
+
+.entry-control--quiet {
+  border-color: var(--line-strong);
+  color: var(--screen);
+  background: transparent;
+}
+
+.entry-control--quiet:hover {
+  border-color: var(--signal);
+  color: var(--signal);
+  background: transparent;
+}
+
 .site-footer {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -1041,22 +1189,30 @@ img {
 
   .hero {
     position: static;
-    min-height: 24rem;
+    min-height: 0;
     padding: 1.1rem;
   }
 
   .hero__cue {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
   }
 
   .hero h1 {
     max-width: 7ch;
-    font-size: clamp(3rem, 15vw, 4rem);
+    font-size: clamp(2.75rem, 13.5vw, 3.5rem);
   }
 
   .hero__note {
     max-width: none;
-    margin-top: 1.4rem;
+    margin-top: 1rem;
+  }
+
+  .hero__maturity {
+    margin-top: 0.9rem;
+  }
+
+  .hero__program {
+    padding-top: 1rem;
   }
 
   .gallery-section {
@@ -1088,6 +1244,23 @@ img {
     margin-top: 0.55rem;
     padding-inline: var(--page-gutter);
     font-size: 0.78rem;
+  }
+
+  .program-end {
+    display: block;
+    margin-inline: var(--page-gutter);
+  }
+
+  .program-end__copy {
+    margin-top: 1.1rem;
+  }
+
+  .program-end__actions {
+    margin-top: 1.5rem;
+  }
+
+  .entry-control {
+    width: 100%;
   }
 
   .editorial-page {
@@ -1208,6 +1381,16 @@ img {
   }
 }
 
+@media (hover: hover) {
+  .photo-card.is-loaded .photo-card__media:hover {
+    border-color: var(--line-strong);
+  }
+
+  .photo-card.is-loaded .photo-card__media:hover img {
+    filter: brightness(1.08);
+  }
+}
+
 @media (hover: none) {
   .photo-card__media:active img {
     filter: brightness(0.9);
@@ -1216,7 +1399,7 @@ img {
 
 @media (max-width: 680px) and (max-height: 650px) {
   .hero {
-    min-height: 21.5rem;
+    min-height: 0;
     padding: 1rem;
   }
 
@@ -1279,9 +1462,11 @@ img {
 
   .gallery-grid,
   .photo-card img,
+  .photo-card__media,
   .photo-card__media::before,
   .collection-card__media img,
   .editorial-nav a::after,
+  .entry-control,
   .glightbox-container,
   .glightbox-container *,
   .glightbox-container *::before,

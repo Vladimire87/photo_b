@@ -127,6 +127,7 @@ The palette is a dark screening room interrupted by a controlled beam of warm li
 - **Headline** is the opening title range, from `clamp(3.25rem, 4.4vw, 5.2rem)` on the gallery to a larger responsive statement on About.
 - **Title** is the collection issue marker range, from `clamp(2rem, 3.8vw, 4.8rem)`.
 - **Meta** carries photograph numbers, captions, and counts at `0.74rem`; **micro** carries compact cues and unavailable-image notices at `0.72rem`.
+- Program-end issue markers sit between the micro and title range at `clamp(1.6rem, 2.4vw, 2.6rem)`.
 - Mobile overrides may compress a role to protect fit and preserve the 44px target rule; they are functional adaptations, not new visual voices.
 
 **The Program Rule.** Large display type states the current viewing context once; compact labels carry all repeated issue and image notation.
@@ -164,6 +165,10 @@ Frames sit on booth-black apertures and preserve each photograph's natural aspec
 ### Collection Programs
 
 Each collection is one split screening block: cover on the left, issue status on the right. Mobile stacks the same block without changing its information order.
+
+### Program End
+
+The issue closes with one square program block after the final frame: an "end of program" cue, the issue marker, one sentence of closure, and one or two entry controls. The primary control is projector yellow; a quiet secondary offers Collections or the previous issue. On the latest issue the primary becomes Collections. Mobile keeps the same block full-width.
 
 ### Navigation
 
