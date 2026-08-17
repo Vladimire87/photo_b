@@ -1,5 +1,3 @@
-import GLightbox from 'glightbox';
-import 'glightbox/dist/css/glightbox.css';
 import { initializeAnalytics, trackPhotoView } from './analytics';
 import {
   formatPhotoNumber,
@@ -457,7 +455,6 @@ function layoutGallery(): void {
       : Math.min(getSoloRowHeight(), naturalRowHeight);
     const rowWidth = rowHeight * aspectSum + gapsWidth;
     let left = shouldFill ? 0 : Math.max(0, (availableWidth - rowWidth) / 2);
-    let bottom = top;
 
     row.forEach((card) => {
       const width = rowHeight * getAspect(card);
@@ -465,6 +462,10 @@ function layoutGallery(): void {
       card.style.width = `${width}px`;
       card.style.transform = `translate3d(${left}px, ${top}px, 0)`;
       left += width + columnGap;
+    });
+
+    let bottom = top;
+    row.forEach((card) => {
       bottom = Math.max(bottom, top + card.getBoundingClientRect().height);
     });
 
@@ -727,10 +728,10 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
 
   image.alt = photo.caption || `PHOTO B gallery photograph ${number}`;
   image.sizes = imageSources.sizes;
-  image.loading = index < 2 ? 'eager' : 'lazy';
+  image.loading = index === 0 ? 'eager' : 'lazy';
   image.decoding = 'async';
 
-  if (index < 2) {
+  if (index === 0) {
     if (imageSources.srcset) {
       image.srcset = imageSources.srcset;
     }
@@ -855,6 +856,9 @@ if (pageView === 'collections') {
   gallery.querySelectorAll<HTMLElement>('.photo-card').forEach((card) => resizeObserver.observe(card));
   void document.fonts.ready.then(scheduleGalleryLayout);
   window.addEventListener('resize', scheduleGalleryLayout, { passive: true });
+
+  const { default: GLightbox } = await import('glightbox');
+  await import('glightbox/dist/css/glightbox.css');
 
   const lightbox = GLightbox({
     selector: '.glightbox',
