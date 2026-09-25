@@ -3,6 +3,7 @@ dist/
 playwright-report/
 test-results/
 tmp/
+.playwright-mcp/
 .DS_Store
 
 # Local Codex skills and lifecycle hooks

@@ -305,6 +305,115 @@ test('keeps mixed aspect ratios visible without forcing the first photo to fill 
   expect(composition.overflow).toBeLessThanOrEqual(1);
 });
 
+test('matches the reference rows with a side featured caption and uncropped images', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'The reference composition is a desktop layout.');
+  await page.setViewportSize({ width: 1024, height: 1536 });
+  await acceptMaturity(page);
+
+  const dimensionsByMarker: Record<string, [number, number]> = {
+    jlm5t449d8fh1: [800, 1200],
+    'charleen-weiss': [900, 1300],
+    '79v1hsv582fh1': [1000, 1200],
+    yB1ny0WT4LQUZ0A1bJaPD6hAp1jD: [800, 1200],
+    'sisse-marie': [800, 1200],
+    anastasiia: [800, 1200],
+    'sara-sampaio': [1600, 1000],
+    'skhz4y8n70hh1': [1600, 1000],
+    marianabenoliel: [1540, 1000],
+  };
+
+  await page.route('https://**/*', async (route) => {
+    if (route.request().resourceType() === 'image') {
+      const url = route.request().url();
+      const marker = Object.keys(dimensionsByMarker).find((key) => url.includes(key));
+      const [width, height] = marker ? dimensionsByMarker[marker] : [900, 900];
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        headers: { 'cache-control': 'no-store' },
+        body: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"></svg>`,
+      });
+      return;
+    }
+
+    await route.continue();
+  });
+
+  await page.goto('/?issue=2026-02');
+  await expect(page.locator('.photo-card')).toHaveCount(40);
+  await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
+  await page.waitForTimeout(1500);
+  await expect.poll(
+    () => page.locator('.photo-card').evaluateAll((cards) => (
+      cards.filter((card) => card.classList.contains('is-loaded')).length
+    )),
+  ).toBeGreaterThanOrEqual(18);
+
+  const composition = await page.locator('#gallery').evaluate((gallery) => {
+    const cards = [...gallery.querySelectorAll<HTMLElement>('.photo-card')].slice(0, 18);
+    const cardData = cards.map((card) => {
+      const cardBounds = card.getBoundingClientRect();
+      const media = card.querySelector<HTMLElement>('.photo-card__media')!.getBoundingClientRect();
+      const caption = card.querySelector<HTMLElement>('.photo-card__meta')!.getBoundingClientRect();
+      const image = card.querySelector<HTMLImageElement>('img')!;
+      return {
+        sourceIndex: Number(card.dataset.sourceIndex),
+        top: cardBounds.top,
+        left: cardBounds.left,
+        cardWidth: cardBounds.width,
+        mediaWidth: media.width,
+        aspect: image.naturalWidth / image.naturalHeight,
+        mediaAspect: media.width / media.height,
+        isFeature: card.classList.contains('is-editorial-feature'),
+        captionBelow: caption.top >= media.bottom - 1,
+        captionAligned: caption.left >= media.left - 1 && caption.right <= media.right + 1,
+        captionSide: caption.right <= media.left - 1 && caption.top < media.bottom,
+        contained: card.classList.contains('is-editorial-contained'),
+      };
+    });
+    const rowTops = [...new Set(cardData.map(({ top }) => Math.round(top)))];
+    const rowCounts = rowTops.map((rowTop) => cardData.filter(
+      ({ top }) => Math.abs(top - rowTop) < 2,
+    ).length);
+    const visualOrder = [...cardData]
+      .sort((first, second) => first.top - second.top || first.left - second.left)
+      .map(({ sourceIndex }) => sourceIndex);
+
+    return {
+      cardData,
+      feature: cardData[8],
+      rowCounts,
+      visualOrder,
+      domOrder: cardData.map(({ sourceIndex }) => sourceIndex),
+    };
+  });
+
+  expect(composition.rowCounts.slice(0, 5)).toEqual([3, 5, 1, 4, 5]);
+  expect(composition.visualOrder).toEqual(composition.domOrder);
+  expect(composition.cardData.every(({ aspect, mediaAspect }) => (
+    Math.abs(aspect - mediaAspect) / aspect < 0.02
+  ))).toBe(true);
+  expect(composition.cardData.filter(({ isFeature }) => !isFeature).every(({
+    captionBelow,
+    captionAligned,
+  }) => captionBelow && captionAligned)).toBe(true);
+  expect(composition.feature.isFeature).toBe(true);
+  expect(composition.feature.captionSide).toBe(true);
+  expect(composition.feature.captionBelow).toBe(false);
+  expect(composition.feature.mediaWidth).toBeLessThan(composition.feature.cardWidth * 0.9);
+  expect(composition.cardData.some(({ contained }) => contained)).toBe(false);
+
+  const orderBeforeLateLoad = composition.domOrder;
+  await page.locator('.photo-card').nth(19).locator('img').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(250);
+  const orderAfterLateLoad = await page.locator('#gallery').evaluate((gallery) => (
+    [...gallery.querySelectorAll<HTMLElement>('.photo-card')]
+      .slice(0, 18)
+      .map((card) => Number(card.dataset.sourceIndex))
+  ));
+  expect(orderAfterLateLoad).toEqual(orderBeforeLateLoad);
+});
+
 test('keeps a wide first photograph from overflowing its solo row', async ({ page }) => {
   await page.setViewportSize({ width: 700, height: 800 });
   await acceptMaturity(page);

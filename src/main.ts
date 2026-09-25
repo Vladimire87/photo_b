@@ -48,6 +48,7 @@ const requestedView = searchParams.get('view');
 const pageView: PageView = requestedView === 'collections' || requestedView === 'about'
   ? requestedView
   : 'gallery';
+document.body.dataset.view = pageView;
 const requestedIssue = searchParams.get('issue');
 const requestedIssueIndex = requestedIssue
   ? issues.findIndex((issue) => issue.slug === requestedIssue)
@@ -73,6 +74,7 @@ const viewStatus = getRequiredElement<HTMLElement>('#view-status');
 const issueNumber = getRequiredElement<HTMLElement>('#issue-number');
 const issueYear = getRequiredElement<HTMLElement>('#issue-year');
 const heroIssueNumber = getRequiredElement<HTMLElement>('#hero-issue-number');
+const heroPhotoCount = getRequiredElement<HTMLElement>('#hero-photo-count');
 const heroYear = getRequiredElement<HTMLElement>('#hero-year');
 const heroProgramLabel = getRequiredElement<HTMLElement>('#hero-program-label');
 const previousIssueLink = getRequiredElement<HTMLAnchorElement>('#previous-issue');
@@ -88,6 +90,10 @@ const aboutPage = getRequiredElement<HTMLElement>('#about-page');
 const programEnd = getRequiredElement<HTMLElement>('#program-end');
 const programEndIssue = getRequiredElement<HTMLElement>('#program-end-issue');
 const programEndYear = getRequiredElement<HTMLElement>('#program-end-year');
+const programEndCount = getRequiredElement<HTMLElement>('#program-end-count');
+const programEndFirst = getRequiredElement<HTMLElement>('#program-end-first');
+const programEndLast = getRequiredElement<HTMLElement>('#program-end-last');
+const programEndRange = getRequiredElement<HTMLElement>('.program-end__range');
 const programEndPrimary = getRequiredElement<HTMLAnchorElement>('#program-end-primary');
 const programEndSecondary = getRequiredElement<HTMLAnchorElement>('#program-end-secondary');
 const latestLink = getRequiredElement<HTMLAnchorElement>('#latest-link');
@@ -99,6 +105,7 @@ const maturityLeave = getRequiredElement<HTMLButtonElement>('#maturity-leave');
 
 const parsed = parsePhotoEntries(photoSource);
 let layoutFrame: number | undefined;
+let committedEditorialOrder: HTMLElement[] | null = null;
 let lastViewedPhotoIndex = 0;
 let lastTrackedPhotoIndex: number | null = null;
 let lastOpenedPhotoLink: HTMLAnchorElement | null = null;
@@ -305,7 +312,7 @@ function setCanonicalPath(path: string): void {
   canonicalLink?.setAttribute('href', new URL(path, canonicalBase).href);
 }
 
-function configureProgramEnd(): void {
+function configureProgramEnd(photoCount: number): void {
   if (pageView !== 'gallery') {
     programEnd.hidden = true;
     return;
@@ -313,6 +320,13 @@ function configureProgramEnd(): void {
 
   programEndIssue.textContent = formatPhotoNumber(activeIssue.number);
   programEndYear.textContent = String(activeIssue.year);
+  programEndCount.textContent = String(photoCount);
+  programEndFirst.textContent = formatPhotoNumber(photoCount > 0 ? 1 : 0);
+  programEndLast.textContent = formatPhotoNumber(photoCount);
+  programEndRange.setAttribute(
+    'aria-label',
+    `Photographs ${formatPhotoNumber(photoCount > 0 ? 1 : 0)} through ${formatPhotoNumber(photoCount)}`,
+  );
 
   const nextIssue = issues[activeIssueIndex + 1];
   const previousIssue = issues[activeIssueIndex - 1];
@@ -325,11 +339,11 @@ function configureProgramEnd(): void {
     programEndSecondary.hidden = false;
   } else {
     programEndPrimary.href = '?view=collections';
-    programEndPrimary.textContent = 'Collections';
+    programEndPrimary.textContent = 'View collections';
 
     if (previousIssue) {
       programEndSecondary.href = `?issue=${previousIssue.slug}`;
-      programEndSecondary.textContent = `Previous issue — ${formatPhotoNumber(previousIssue.number)} / ${previousIssue.year}`;
+      programEndSecondary.textContent = `Previous issue — ${formatPhotoNumber(previousIssue.number)} / ${previousIssue.year} →`;
       programEndSecondary.hidden = false;
     } else {
       programEndSecondary.hidden = true;
@@ -339,9 +353,10 @@ function configureProgramEnd(): void {
 
 issueNumber.textContent = formatPhotoNumber(activeIssue.number);
 heroIssueNumber.textContent = formatPhotoNumber(activeIssue.number);
+heroPhotoCount.textContent = String(parsed.photos.length);
 issueYear.textContent = String(activeIssue.year);
 heroYear.textContent = String(activeIssue.year);
-heroProgramLabel.textContent = activeIssueIndex === issues.length - 1 ? 'Latest issue' : 'Earlier issue';
+heroProgramLabel.textContent = `Issue ${formatPhotoNumber(activeIssue.number)}`;
 configureIssueLink(previousIssueLink, issues[activeIssueIndex - 1], 'Previous');
 configureIssueLink(nextIssueLink, issues[activeIssueIndex + 1], 'Next');
 
@@ -371,7 +386,7 @@ setCanonicalPath(
     : `/?view=${pageView}`,
 );
 
-configureProgramEnd();
+configureProgramEnd(parsed.photos.length);
 
 parsed.warnings.forEach((warning) => console.warn(`[PHOTO B] ${warning}`));
 
@@ -384,7 +399,7 @@ function classifyFeatureFrames(cards: HTMLElement[]): void {
 
   cards.forEach((card, index) => {
     const aspect = Number.parseFloat(card.dataset.photoAspect ?? '');
-    const isFeature = index > 0
+    const isFeature = index >= 3
       && !previousWasFeature
       && Number.isFinite(aspect)
       && aspect >= featureAspectThreshold;
@@ -393,29 +408,323 @@ function classifyFeatureFrames(cards: HTMLElement[]): void {
   });
 }
 
+interface EditorialGroup {
+  sourceIndices: number[];
+  targetAspects: number[];
+}
+
+const editorialGroups: EditorialGroup[] = [
+  { sourceIndices: [0, 1, 2], targetAspects: [141 / 184, 178 / 171, 367 / 184] },
+  { sourceIndices: [3, 4, 5, 7, 8], targetAspects: [141 / 171, 125 / 171, 127 / 171, 89 / 171, 91 / 171] },
+  { sourceIndices: [6], targetAspects: [954.375 / 317] },
+  { sourceIndices: [9, 10, 11, 12], targetAspects: [330 / 165, 131 / 165, 98 / 165, 303 / 165] },
+  { sourceIndices: [13, 14, 15, 16, 17], targetAspects: [169 / 164, 138 / 164, 244 / 164, 132 / 164, 92 / 164] },
+];
+
+function getCardAspect(card: HTMLElement): number {
+  const aspect = Number.parseFloat(card.dataset.photoAspect ?? '');
+  return Number.isFinite(aspect) && aspect > 0 ? aspect : 4 / 5;
+}
+
+function isPhotoCardResolved(card: HTMLElement): boolean {
+  return card.classList.contains('is-loaded') || card.classList.contains('is-error');
+}
+
+function getSourceIndex(card: HTMLElement): number {
+  const index = Number.parseInt(card.dataset.sourceIndex ?? '', 10);
+  return Number.isFinite(index) ? index : Number.MAX_SAFE_INTEGER;
+}
+
+function selectCardsForEditorialGroup(
+  cards: HTMLElement[],
+  group: EditorialGroup,
+  usedCards: Set<HTMLElement>,
+): HTMLElement[] {
+  const selected: HTMLElement[] = [];
+
+  group.targetAspects.forEach((targetAspect, index) => {
+    const sourceCards = group.sourceIndices
+      .map((sourceIndex) => cards[sourceIndex])
+      .filter((card): card is HTMLElement => Boolean(card) && !usedCards.has(card));
+    const candidates = sourceCards.filter(isPhotoCardResolved);
+    const pool = candidates.length === sourceCards.length
+      ? candidates
+      : sourceCards;
+    const expectedSourceIndex = group.sourceIndices[index] ?? index;
+    const card = pool.reduce<HTMLElement | null>((best, candidate) => {
+      if (!best) {
+        return candidate;
+      }
+
+      const candidateCost = Math.log(getCardAspect(candidate) / targetAspect) ** 2
+        + Math.abs(getSourceIndex(candidate) - expectedSourceIndex) * 0.000001;
+      const bestCost = Math.log(getCardAspect(best) / targetAspect) ** 2
+        + Math.abs(getSourceIndex(best) - expectedSourceIndex) * 0.000001;
+
+      return candidateCost < bestCost
+        || (Math.abs(candidateCost - bestCost) < 0.000001
+          && getSourceIndex(candidate) < getSourceIndex(best))
+        ? candidate
+        : best;
+    }, null);
+
+    if (card) {
+      selected.push(card);
+      usedCards.add(card);
+    }
+  });
+
+  return selected;
+}
+
+function buildEditorialOrder(cards: HTMLElement[]): HTMLElement[] {
+  const ordered: HTMLElement[] = [];
+  const usedCards = new Set<HTMLElement>();
+
+  editorialGroups.forEach((group) => {
+    ordered.push(...selectCardsForEditorialGroup(cards, group, usedCards));
+  });
+
+  cards.forEach((card) => {
+    if (!usedCards.has(card)) {
+      ordered.push(card);
+      usedCards.add(card);
+    }
+  });
+
+  return ordered;
+}
+
+function setGalleryCardOrder(cards: HTMLElement[]): void {
+  const currentOrder = [...gallery.children].filter(
+    (child): child is HTMLElement => child instanceof HTMLElement && child.classList.contains('photo-card'),
+  );
+  const isCurrentOrder = currentOrder.length === cards.length
+    && currentOrder.every((card, index) => card === cards[index]);
+
+  if (isCurrentOrder) {
+    return;
+  }
+
+  gallery.append(...cards);
+  refreshPhotoSequence();
+}
+
 function layoutGallery(): void {
   layoutFrame = undefined;
-  const cards = [...gallery.querySelectorAll<HTMLElement>('.photo-card')];
-  classifyFeatureFrames(cards);
+  const cards = [...gallery.querySelectorAll<HTMLElement>('.photo-card')]
+    .sort((first, second) => getSourceIndex(first) - getSourceIndex(second));
 
   if (window.matchMedia('(max-width: 680px)').matches) {
-    gallery.style.removeProperty('height');
+    setGalleryCardOrder(cards);
     cards.forEach((card) => {
+      card.classList.remove('is-editorial-card', 'is-editorial-feature', 'is-editorial-contained', 'is-feature');
       card.style.removeProperty('position');
       card.style.removeProperty('transform');
       card.style.removeProperty('width');
     });
+    gallery.style.removeProperty('height');
     gallery.classList.add('is-arranged');
     return;
   }
 
   const galleryStyles = getComputedStyle(gallery);
+  const pageStyles = getComputedStyle(galleryPage);
   const columnGap = Number.parseFloat(galleryStyles.columnGap) || 0;
+  const pagePaddingStart = Number.parseFloat(pageStyles.paddingInlineStart) || 0;
   const rowGap = Number.parseFloat(galleryStyles.rowGap) || 0;
   const availableWidth = gallery.clientWidth;
   if (availableWidth <= 0) {
     return;
   }
+
+  cards.forEach((card) => {
+    card.classList.remove('is-editorial-card', 'is-editorial-feature', 'is-editorial-contained');
+    card.style.removeProperty('--editorial-media-height');
+    card.style.removeProperty('--editorial-divider-before');
+    card.style.removeProperty('--editorial-divider-after');
+  });
+
+  const openingAspects = cards.slice(0, 6).map((card) => Number.parseFloat(card.dataset.photoAspect ?? ''));
+  const canCommitEditorialOrder = cards.slice(0, 7).every(isPhotoCardResolved)
+    && openingAspects.filter((aspect) => Number.isFinite(aspect) && aspect > 0 && aspect < 1).length >= 3;
+  const useEditorialComposition = cards.length >= 18
+    && window.innerWidth <= 1700
+    && !cards[0].classList.contains('is-error')
+    && (committedEditorialOrder !== null || canCommitEditorialOrder);
+
+  if (useEditorialComposition) {
+    const pageContentStart = galleryPage.getBoundingClientRect().left + pagePaddingStart;
+    const galleryStart = gallery.getBoundingClientRect().left;
+    const pageOffset = pageContentStart - galleryStart;
+    const pageWidth = availableWidth - pageOffset;
+    const pageColumnGap = Number.parseFloat(pageStyles.columnGap) || 0;
+    const columnWidth = (pageWidth - pageColumnGap * 11) / 12;
+    const featureAsideWidth = columnWidth * 2;
+    const featureGap = pageColumnGap;
+    const stageScale = availableWidth / 715.53125;
+    const pageScale = pageWidth / 954.375;
+
+    cards.forEach((card) => {
+      card.classList.remove('is-editorial-card', 'is-editorial-feature', 'is-editorial-contained', 'is-feature');
+      card.style.removeProperty('--feature-aside-width');
+      card.style.removeProperty('--feature-gap');
+      card.style.removeProperty('--feature-media-height');
+    });
+
+    if (!committedEditorialOrder) {
+      committedEditorialOrder = buildEditorialOrder(cards);
+    }
+
+    const orderedCards = committedEditorialOrder;
+    setGalleryCardOrder(orderedCards);
+
+    const placeEditorialCard = (
+      card: HTMLElement,
+      left: number,
+      width: number,
+      rowTop: number,
+      isFeature = false,
+    ): void => {
+      card.classList.add('is-editorial-card');
+      card.classList.toggle('is-feature', isFeature);
+      card.classList.toggle('is-editorial-feature', isFeature);
+      card.style.position = 'absolute';
+      card.style.width = `${width}px`;
+      card.style.transform = `translate3d(${left}px, ${rowTop}px, 0)`;
+      card.style.setProperty('--photo-aspect', String(getCardAspect(card)));
+
+      if (isFeature) {
+        card.style.setProperty('--feature-aside-width', `${featureAsideWidth}px`);
+        card.style.setProperty('--feature-gap', `${featureGap}px`);
+      }
+    };
+
+    const placeNaturalRow = (
+      rowCards: HTMLElement[],
+      rowTop: number,
+      rowLeft: number,
+      rowWidth: number,
+      gap: number,
+    ): number => {
+      const aspectSum = rowCards.reduce((total, card) => total + getCardAspect(card), 0);
+      const height = (rowWidth - gap * Math.max(0, rowCards.length - 1)) / aspectSum;
+      let left = rowLeft;
+
+      rowCards.forEach((card) => {
+        const width = height * getCardAspect(card);
+        placeEditorialCard(card, left, width, rowTop);
+        left += width + gap;
+      });
+
+      return rowTop + Math.max(
+        ...rowCards.map((card) => card.getBoundingClientRect().height),
+      );
+    };
+
+    let top = 0;
+    top = placeNaturalRow(
+      orderedCards.slice(0, 3),
+      top,
+      -2 * stageScale,
+      availableWidth,
+      15 * stageScale,
+    ) + 23 * stageScale;
+    top = placeNaturalRow(
+      orderedCards.slice(3, 8),
+      top,
+      -2 * stageScale,
+      availableWidth,
+      15 * stageScale,
+    ) + 25 * stageScale + 21 * pageScale;
+
+    const featureCard = orderedCards[8];
+    placeEditorialCard(featureCard, pageOffset, pageWidth, top, true);
+    top += featureCard.getBoundingClientRect().height + 44 * pageScale;
+
+    top = placeNaturalRow(
+      orderedCards.slice(9, 13),
+      top,
+      pageOffset,
+      pageWidth,
+      24 * pageScale,
+    ) + 12 * pageScale;
+    top = placeNaturalRow(
+      orderedCards.slice(13, 18),
+      top,
+      pageOffset,
+      pageWidth,
+      24 * pageScale,
+    );
+
+    const remainingProfiles = [
+      { minimum: 280, preferred: 0.42, maximum: 460 },
+      { minimum: 150, preferred: 0.27, maximum: 330 },
+      { minimum: 220, preferred: 0.36, maximum: 400 },
+      { minimum: 140, preferred: 0.24, maximum: 290 },
+    ];
+    const remainingCards = orderedCards.slice(18);
+    const remainingGap = 24 * pageScale;
+    let remainingRow: HTMLElement[] = [];
+    let remainingAspectSum = 0;
+    let remainingRowIndex = 0;
+
+    const placeRemainingRow = (): void => {
+      if (remainingRow.length === 0) {
+        return;
+      }
+
+      const height = (
+        pageWidth - remainingGap * Math.max(0, remainingRow.length - 1)
+      ) / remainingAspectSum;
+      let left = pageOffset;
+
+      remainingRow.forEach((card) => {
+        const width = height * getCardAspect(card);
+        placeEditorialCard(card, left, width, top);
+        left += width + remainingGap;
+      });
+
+      let bottom = top;
+      remainingRow.forEach((card) => {
+        bottom = Math.max(bottom, top + card.getBoundingClientRect().height);
+      });
+      top = bottom + remainingGap;
+      remainingRow = [];
+      remainingAspectSum = 0;
+      remainingRowIndex += 1;
+    };
+
+    const getRemainingTargetHeight = (): number => {
+      const profile = remainingProfiles[remainingRowIndex % remainingProfiles.length];
+      return Math.min(
+        profile.maximum,
+        Math.max(profile.minimum, pageWidth * profile.preferred),
+      );
+    };
+
+    remainingCards.forEach((card) => {
+      const aspect = getCardAspect(card);
+      remainingRow.push(card);
+      remainingAspectSum += aspect;
+
+      const projectedHeight = (
+        pageWidth - remainingGap * Math.max(0, remainingRow.length - 1)
+      ) / remainingAspectSum;
+      if (projectedHeight <= getRemainingTargetHeight()) {
+        placeRemainingRow();
+      }
+    });
+
+    placeRemainingRow();
+    const galleryBottom = remainingCards.length > 0 ? top - remainingGap : top;
+    gallery.style.height = `${Math.max(0, galleryBottom)}px`;
+    gallery.classList.add('is-arranged');
+    return;
+  }
+
+  setGalleryCardOrder(cards);
+  classifyFeatureFrames(cards);
 
   const rowProfiles = [
     { minimum: 280, preferred: 0.42, maximum: 460 },
@@ -477,13 +786,26 @@ function layoutGallery(): void {
 
   const placeFeature = (card: HTMLElement): void => {
     const aspect = getAspect(card);
-    const maxHeight = Math.max(360, window.innerHeight - 128);
-    const height = Math.min(availableWidth / aspect, maxHeight);
-    const width = height * aspect;
-    const left = Math.max(0, (availableWidth - width) / 2);
+    const pageContentStart = galleryPage.getBoundingClientRect().left + pagePaddingStart;
+    const galleryStart = gallery.getBoundingClientRect().left;
+    const isUltraWide = window.innerWidth > 2400;
+    const featureOffset = isUltraWide ? 0 : galleryStart - pageContentStart;
+    const availableFeatureWidth = availableWidth + featureOffset;
+    const maxHeight = Math.max(360, window.innerHeight - 160);
+    const width = Math.min(availableFeatureWidth, maxHeight * aspect);
+    const left = -featureOffset + (availableFeatureWidth - width) / 2;
+
     card.style.position = 'absolute';
     card.style.width = `${width}px`;
     card.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+    top += card.getBoundingClientRect().height + rowGap;
+    rowIndex += 1;
+  };
+
+  const placeWideSolo = (card: HTMLElement): void => {
+    card.style.position = 'absolute';
+    card.style.width = `${availableWidth}px`;
+    card.style.transform = `translate3d(0, ${top}px, 0)`;
     top += card.getBoundingClientRect().height + rowGap;
     rowIndex += 1;
   };
@@ -496,6 +818,13 @@ function layoutGallery(): void {
     }
 
     const cardAspect = getAspect(card);
+
+    if (index === 1 && cardAspect >= featureAspectThreshold) {
+      placeRow(false);
+      placeWideSolo(card);
+      return;
+    }
+
     row.push(card);
     aspectSum += cardAspect;
 
@@ -706,10 +1035,13 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
   const image = document.createElement('img');
   const meta = document.createElement('figcaption');
   const numberElement = document.createElement('span');
+  const featureLabelElement = document.createElement('span');
+  const issueElement = document.createElement('span');
   const ruleElement = document.createElement('span');
 
   figure.className = 'photo-card is-loading';
   figure.dataset.photoIndex = String(index);
+  figure.dataset.sourceIndex = String(index);
   figure.dataset.photoAspect = String(4 / 5);
   figure.dataset.caption = photo.caption ?? '';
 
@@ -801,20 +1133,20 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
   meta.className = 'photo-card__meta';
   numberElement.className = 'photo-card__number';
   numberElement.textContent = number;
+  featureLabelElement.className = 'photo-card__feature-label';
+  featureLabelElement.textContent = 'Featured photograph';
+  issueElement.className = 'photo-card__issue';
+  issueElement.textContent = `Issue ${formatPhotoNumber(activeIssue.number)} / ${activeIssue.year}`;
   ruleElement.className = 'photo-card__rule';
   ruleElement.setAttribute('aria-hidden', 'true');
-  meta.append(numberElement);
+  meta.append(numberElement, featureLabelElement, issueElement, ruleElement);
 
   if (photo.caption) {
     const labelElement = document.createElement('span');
     labelElement.className = 'photo-card__label';
     labelElement.textContent = photo.caption;
     meta.append(labelElement);
-  } else {
-    meta.classList.add('photo-card__meta--number-only');
   }
-
-  meta.append(ruleElement);
 
   link.append(image);
   figure.append(link, meta);

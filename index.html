@@ -31,7 +31,7 @@
     <meta name="twitter:description" content="A personal collection of photos I like." />
     <meta name="twitter:image" content="https://photob.pages.dev/assets/photo-b-og.png" />
     <meta name="twitter:image:alt" content="PHOTO B — Photos I Like" />
-    <meta name="theme-color" content="#081a40" />
+    <meta name="theme-color" content="#081d39" />
     <link rel="icon" type="image/png" href="/assets/photo-b-mark.png" />
     <link rel="stylesheet" href="/src/styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -40,28 +40,7 @@
     <link rel="preconnect" href="https://external-preview.redd.it" />
     <link rel="preconnect" href="https://i.redd.it" />
     <link
-      rel="preload"
-      href="https://fonts.gstatic.com/s/archivoblack/v23/HTxqL289NzCGg4MzN6KJ7eW6CYyF_jzx13E.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="https://fonts.gstatic.com/s/archivonarrow/v35/tss0ApVBdCYD5Q7hcxTE1ArZ0bbwiXxw2d8o.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="https://fonts.gstatic.com/s/splinesans/v16/_6_7ED73Uf-2WfU2LzycEbAimC0dSh5i.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo+Narrow:wght@400;500;600;700&family=Spline+Sans&display=optional"
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Lora:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <title>PHOTO B — Photos I Like</title>
@@ -106,39 +85,37 @@
         <a id="about-link" href="?view=about">About</a>
       </nav>
 
-      <nav class="issue issue-switcher" aria-label="Issue navigation">
-        <a id="previous-issue" class="issue-switcher__control" rel="prev">Previous</a>
-        <span id="issue-label">
-          Issue <span id="issue-number">01</span> <span aria-hidden="true">/</span>
-          <span id="issue-year">2026</span>
-        </span>
-        <a id="next-issue" class="issue-switcher__control" rel="next">Next</a>
-      </nav>
+      <div class="header-meta">
+        <nav class="issue issue-switcher" aria-label="Issue navigation">
+          <a id="previous-issue" class="issue-switcher__control" rel="prev">Previous</a>
+          <span id="issue-label">
+            Issue <span id="issue-number">01</span> <span aria-hidden="true">/</span>
+            <span id="issue-year">2026</span>
+          </span>
+          <a id="next-issue" class="issue-switcher__control" rel="next">Next</a>
+        </nav>
 
-      <div id="view-status" class="view-count" aria-live="polite">
-        <span class="view-count__dot" aria-hidden="true"></span>
-        <span id="view-count">Photo 01 / 00</span>
+        <div id="view-status" class="view-count" aria-live="polite">
+          <span class="view-count__dot" aria-hidden="true"></span>
+          <span id="view-count">Photo 01 / 00</span>
+        </div>
       </div>
     </header>
 
     <main id="top">
       <div id="gallery-page">
         <section class="hero" aria-labelledby="page-title">
-          <p class="hero__cue">
-            <span class="hero__cue-dot" aria-hidden="true"></span>
-            Issue <span id="hero-issue-number">01</span>
-          </p>
+          <p class="hero__cue">Issue <span id="hero-issue-number">01</span></p>
           <h1 id="page-title">Photos<br />I keep</h1>
           <p class="hero__note">
             A personal selection, published in numbered issues.
           </p>
-          <p class="hero__maturity" aria-label="18 plus, artistic nudity and erotic imagery">
-            <span class="hero__maturity-mark">18+</span>
-            <span>Artistic nudity &amp; erotic imagery</span>
-          </p>
           <p class="hero__program">
-            <span id="hero-program-label">Latest issue</span>
-            <span id="hero-year">2026</span>
+            <span>
+              <span id="hero-photo-count">00</span> photos
+              <span aria-hidden="true">·</span>
+              <span id="hero-program-label">Issue 01</span> / <span id="hero-year">2026</span>
+            </span>
           </p>
         </section>
 
@@ -149,26 +126,30 @@
             <h2>No photographs yet.</h2>
             <p>This issue will appear here once photographs are added.</p>
           </div>
-          <section id="program-end" class="program-end" aria-labelledby="program-end-title" hidden>
-            <div class="program-end__head">
-              <p class="program-end__cue">
-                <span class="program-end__dot" aria-hidden="true"></span>
-                End of program
-              </p>
-              <p id="program-end-title" class="program-end__title">
-                Issue <span id="program-end-issue">01</span>
-                <span aria-hidden="true">/</span>
-                <span id="program-end-year">2026</span>
-              </p>
-            </div>
+        </section>
+        <section id="program-end" class="program-end" aria-labelledby="program-end-title" hidden>
+          <div class="program-end__head">
+            <p class="program-end__cue">End of issue</p>
+            <p id="program-end-title" class="program-end__title">
+              Issue <span id="program-end-issue">01</span>
+              <span aria-hidden="true">/</span>
+              <span id="program-end-year">2026</span>
+            </p>
             <p class="program-end__copy">
-              That's every photograph in this issue.
+              <span id="program-end-count">40</span> photographs
             </p>
             <div class="program-end__actions">
-              <a id="program-end-primary" class="entry-control" href="?view=collections">Collections</a>
-              <a id="program-end-secondary" class="entry-control entry-control--quiet" href="#" hidden>Previous issue</a>
+              <a id="program-end-primary" class="entry-control" href="?view=collections">View collections</a>
             </div>
-          </section>
+          </div>
+          <div class="program-end__foot">
+            <a id="program-end-secondary" class="entry-control entry-control--quiet" href="#" hidden>Previous issue</a>
+            <p class="program-end__range" aria-label="Photographs 01 through 40">
+              <span id="program-end-first">01</span>
+              <span aria-hidden="true">—</span>
+              <span id="program-end-last">40</span>
+            </p>
+          </div>
         </section>
       </div>
 

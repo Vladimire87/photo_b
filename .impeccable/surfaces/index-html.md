@@ -18,14 +18,18 @@ related_targets: ["src/main.ts","src/styles.css"]
 
 ## Constraints
 
-- Preserve the static Vite implementation, external-image behavior, lazy loading, keyboard access, issue publishing format, and mobile usability.
+- Preserve the static Vite implementation, external-image behavior, lazy loading, keyboard access, issue publishing format, mobile usability, and the existing 18+ confirmation flow.
 - Do not represent the Reddit-sourced photographs as commercially cleared.
 - Do not invent view counts, locations, testimonials, or additional issues.
 
 ## Chosen direction
 
-- Midnight Cinémathèque: cobalt screening room, booth-black apertures, projector-yellow signals, square program frames.
-- Memorable moment: a compact sticky program panel holds beside one dominant first photograph, then yields to a varied issue sequence.
+- Midnight Cinémathèque: a continuous cobalt screening room, compact quiet header, square frame geometry, and projector-yellow signals.
+- Barlow Condensed sets the wordmark, navigation, titles, captions, and issue notation; Lora is reserved for short prose and captions.
+- Gallery opens with a quiet issue panel beside a curated 3/5 photographic stage; a featured frame then breaks the grid with a side caption rail, and the following four/five rows span the full page. Additional photos repeat the rhythm; short or landscape-led issues use the adaptive fallback.
+- Collections pairs photographic covers with concise issue information. About keeps the same cobalt field and frame geometry, with a slower text-led layout.
+- At mobile widths, panels and images stack in reading order; the issue state and photo position remain visible without horizontal overflow.
+- Memorable moment: a quiet issue column opens beside the 3/5 stage, yields to a full-bleed featured frame, then continues as a full-width four/five-photo editorial grid.
 
 ## Unresolved
 
