@@ -203,13 +203,15 @@ test('renders the complete editorial gallery without horizontal overflow', async
       const bounds = card.getBoundingClientRect();
       return {
         top: bounds.top,
+        left: bounds.left,
         width: bounds.width,
         viewportWidth: window.innerWidth,
         viewportHeight: window.innerHeight,
       };
     });
 
-    expect(mobileComposition.width).toBeGreaterThanOrEqual(mobileComposition.viewportWidth - 1);
+    expect(mobileComposition.width).toBeGreaterThanOrEqual(mobileComposition.viewportWidth - 32);
+    expect(mobileComposition.left).toBeGreaterThanOrEqual(12);
     expect(mobileComposition.top).toBeLessThan(mobileComposition.viewportHeight);
   }
 
@@ -298,7 +300,7 @@ test('keeps mixed aspect ratios visible without forcing the first photo to fill 
       Math.abs(composition.secondMediaHeight - composition.second.width / 2),
     ).toBeLessThanOrEqual(3);
   } else {
-    expect(composition.first.width).toBeGreaterThanOrEqual(page.viewportSize()!.width - 1);
+    expect(composition.first.width).toBeGreaterThanOrEqual(page.viewportSize()!.width - 32);
     expect(composition.firstMediaHeight).toBeGreaterThan(composition.first.width * 1.3);
   }
 
