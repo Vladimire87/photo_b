@@ -414,6 +414,64 @@ test('matches the reference rows with a side featured caption and uncropped imag
   expect(orderAfterLateLoad).toEqual(orderBeforeLateLoad);
 });
 
+test('keeps skeleton loading free of cumulative layout shift', async ({ page }) => {
+  await acceptMaturity(page);
+  await page.addInitScript(() => {
+    const metrics = window as Window & { __photoBCls?: number };
+    metrics.__photoBCls = 0;
+    new PerformanceObserver((list) => {
+      for (const rawEntry of list.getEntries()) {
+        const entry = rawEntry as PerformanceEntry & { hadRecentInput: boolean; value: number };
+        if (!entry.hadRecentInput) {
+          metrics.__photoBCls = (metrics.__photoBCls ?? 0) + entry.value;
+        }
+      }
+    }).observe({ type: 'layout-shift', buffered: true });
+  });
+
+  await page.route('https://**/*', async (route) => {
+    if (route.request().resourceType() === 'image') {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        headers: { 'cache-control': 'no-store' },
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200"></svg>',
+      });
+      return;
+    }
+
+    await route.continue();
+  });
+
+  await page.goto('/?issue=2026-02', { waitUntil: 'commit' });
+  await page.locator('.photo-card').first().waitFor();
+
+  const skeleton = await page.locator('.photo-card').first().evaluate((card) => {
+    const media = card.querySelector<HTMLElement>('.photo-card__media')!;
+    return {
+      busy: card.getAttribute('aria-busy'),
+      animation: getComputedStyle(media, '::before').animationName,
+    };
+  });
+
+  expect(skeleton.busy).toBe('true');
+  expect(skeleton.animation).toContain('skeleton-pulse');
+
+  await page.waitForTimeout(5000);
+
+  const result = await page.evaluate(() => {
+    const metrics = window as Window & { __photoBCls?: number };
+    return {
+      cls: metrics.__photoBCls ?? 0,
+      busy: document.querySelector('.photo-card')?.getAttribute('aria-busy'),
+    };
+  });
+
+  expect(result.cls).toBeLessThan(0.01);
+  expect(result.busy).toBe('false');
+});
+
 test('contains the editorial composition on ultra-wide screens', async ({ page, isMobile }) => {
   test.skip(isMobile, 'The wide composition is a desktop layout.');
   await page.setViewportSize({ width: 2543, height: 3633 });

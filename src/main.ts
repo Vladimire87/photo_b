@@ -961,6 +961,7 @@ function createCollectionCard(
   const cover = photos[0];
 
   article.className = 'collection-card';
+  article.setAttribute('aria-busy', 'true');
   link.className = 'collection-card__link';
   link.href = `?issue=${issue.slug}`;
   link.setAttribute('aria-label', `Open issue ${formatPhotoNumber(issue.number)}, ${issue.year}`);
@@ -996,11 +997,28 @@ function createCollectionCard(
       image.fetchPriority = 'high';
     }
 
-    image.addEventListener('load', () => article.classList.add('is-loaded'), { once: true });
-    image.addEventListener('error', () => article.classList.add('is-error'), { once: true });
+    image.addEventListener('load', () => {
+      article.classList.add('is-loaded');
+      article.setAttribute('aria-busy', 'false');
+    }, { once: true });
+    image.addEventListener('error', () => {
+      article.classList.add('is-error');
+      article.setAttribute('aria-busy', 'false');
+    }, { once: true });
+
+    if (image.complete) {
+      if (image.naturalWidth > 0) {
+        article.classList.add('is-loaded');
+      } else {
+        article.classList.add('is-error');
+      }
+      article.setAttribute('aria-busy', 'false');
+    }
+
     media.append(image);
   } else {
     article.classList.add('is-error');
+    article.setAttribute('aria-busy', 'false');
   }
 
   meta.append(issueLabel, count);
@@ -1039,6 +1057,7 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
   const ruleElement = document.createElement('span');
 
   figure.className = 'photo-card is-loading';
+  figure.setAttribute('aria-busy', 'true');
   figure.dataset.photoIndex = String(index);
   figure.dataset.sourceIndex = String(index);
   figure.dataset.photoAspect = String(4 / 5);
@@ -1080,6 +1099,7 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
     unobservePhotoCard?.(figure);
     figure.classList.remove('is-loading');
     figure.classList.add('is-error');
+    figure.setAttribute('aria-busy', 'false');
     link.removeAttribute('href');
     link.classList.remove('glightbox');
     link.setAttribute('aria-disabled', 'true');
@@ -1096,6 +1116,7 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
     const aspect = image.naturalWidth / image.naturalHeight;
     figure.dataset.photoAspect = String(aspect);
     figure.style.setProperty('--photo-aspect', String(aspect));
+    figure.setAttribute('aria-busy', 'false');
     figure.classList.remove('is-loading');
     figure.classList.add('is-loaded');
     scheduleGalleryLayout();
