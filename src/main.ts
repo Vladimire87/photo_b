@@ -549,7 +549,6 @@ function layoutGallery(): void {
   const canCommitEditorialOrder = cards.slice(0, 7).every(isPhotoCardResolved)
     && openingAspects.filter((aspect) => Number.isFinite(aspect) && aspect > 0 && aspect < 1).length >= 3;
   const useEditorialComposition = cards.length >= 18
-    && window.innerWidth <= 1700
     && !cards[0].classList.contains('is-error')
     && (committedEditorialOrder !== null || canCommitEditorialOrder);
 

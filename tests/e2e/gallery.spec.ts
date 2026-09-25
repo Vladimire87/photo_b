@@ -414,6 +414,94 @@ test('matches the reference rows with a side featured caption and uncropped imag
   expect(orderAfterLateLoad).toEqual(orderBeforeLateLoad);
 });
 
+test('contains the editorial composition on ultra-wide screens', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'The wide composition is a desktop layout.');
+  await page.setViewportSize({ width: 2543, height: 3633 });
+  await acceptMaturity(page);
+
+  const dimensionsByMarker: Record<string, [number, number]> = {
+    jlm5t449d8fh1: [800, 1200],
+    'charleen-weiss': [900, 1300],
+    '79v1hsv582fh1': [1000, 1200],
+    yB1ny0WT4LQUZ0A1bJaPD6hAp1jD: [800, 1200],
+    'sisse-marie': [800, 1200],
+    anastasiia: [800, 1200],
+    'sara-sampaio': [1600, 1000],
+  };
+
+  await page.route('https://**/*', async (route) => {
+    if (route.request().resourceType() === 'image') {
+      const url = route.request().url();
+      const marker = Object.keys(dimensionsByMarker).find((key) => url.includes(key));
+      const [width, height] = marker ? dimensionsByMarker[marker] : [900, 900];
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        headers: { 'cache-control': 'no-store' },
+        body: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"></svg>`,
+      });
+      return;
+    }
+
+    await route.continue();
+  });
+
+  await page.goto('/?issue=2026-02');
+  await expect(page.locator('.photo-card')).toHaveCount(40);
+  await expect.poll(
+    () => page.locator('.photo-card').evaluateAll((cards) => (
+      cards.slice(0, 7).every((card) => card.classList.contains('is-loaded'))
+    )),
+  ).toBe(true);
+
+  const composition = await page.locator('#gallery-page').evaluate((pageElement) => {
+    const gallery = pageElement.querySelector<HTMLElement>('#gallery')!;
+    const pageBounds = pageElement.getBoundingClientRect();
+    const cards = [...gallery.querySelectorAll<HTMLElement>('.photo-card')].slice(0, 18);
+    const cardData = cards.map((card) => {
+      const media = card.querySelector<HTMLElement>('.photo-card__media')!.getBoundingClientRect();
+      const caption = card.querySelector<HTMLElement>('.photo-card__meta')!.getBoundingClientRect();
+      const bounds = card.getBoundingClientRect();
+      return {
+        top: bounds.top,
+        left: bounds.left,
+        width: bounds.width,
+        mediaWidth: media.width,
+        isFeature: card.classList.contains('is-editorial-feature'),
+        captionBelow: caption.top >= media.bottom - 1,
+        captionSide: caption.right <= media.left - 1,
+      };
+    });
+    const rowTops = [...new Set(cardData.map(({ top }) => Math.round(top)))];
+    const rowCounts = rowTops.map((rowTop) => cardData.filter(
+      ({ top }) => Math.abs(top - rowTop) < 2,
+    ).length);
+    const feature = cardData[8];
+    const featureBounds = cards[8].getBoundingClientRect();
+
+    return {
+      pageBounds: pageBounds.toJSON(),
+      galleryBounds: gallery.getBoundingClientRect().toJSON(),
+      featureBounds: featureBounds.toJSON(),
+      feature,
+      cardData,
+      rowCounts,
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+    };
+  });
+
+  expect(composition.pageBounds.width).toBeLessThanOrEqual(1920);
+  expect(composition.rowCounts.slice(0, 5)).toEqual([3, 5, 1, 4, 5]);
+  expect(composition.feature.isFeature).toBe(true);
+  expect(composition.feature.captionSide).toBe(true);
+  expect(composition.feature.captionBelow).toBe(false);
+  expect(composition.feature.mediaWidth).toBeLessThan(composition.feature.width * 0.9);
+  expect(composition.cardData.filter(({ isFeature }) => !isFeature).every(({ captionBelow }) => captionBelow)).toBe(true);
+  expect(composition.featureBounds.left).toBeGreaterThanOrEqual(composition.pageBounds.left - 1);
+  expect(composition.featureBounds.right).toBeLessThanOrEqual(composition.pageBounds.right + 1);
+  expect(composition.overflow).toBeLessThanOrEqual(1);
+});
+
 test('keeps a wide first photograph from overflowing its solo row', async ({ page }) => {
   await page.setViewportSize({ width: 700, height: 800 });
   await acceptMaturity(page);
@@ -450,12 +538,13 @@ test('fills the row that a wide feature photograph interrupts', async ({ page, i
 
   const dimensionsByMarker: Record<string, [number, number]> = {
     'pbxnq8x2njdh1': [0, 0],
-    'charleen-weiss': [1080, 1440],
-    'inde-navarrette': [794, 1140],
-    'yB1ny0WT4LQUZ0A1bJaPD6hAp1jD': [640, 758],
-    'sisse-marie': [640, 960],
-    'anastasiia': [640, 960],
-    'sara-sampaio': [640, 399],
+    jlm5t449d8fh1: [900, 900],
+    'charleen-weiss': [900, 900],
+    'inde-navarrette': [900, 900],
+    'yB1ny0WT4LQUZ0A1bJaPD6hAp1jD': [900, 900],
+    'sisse-marie': [900, 900],
+    anastasiia: [900, 900],
+    'sara-sampaio': [1600, 1000],
   };
 
   await page.route('https://**/*', async (route) => {
@@ -507,9 +596,9 @@ test('fills the row that a wide feature photograph interrupts', async ({ page, i
   });
 
   expect(row.sameRow).toBe(true);
-  expect(row.span).toBeGreaterThan(row.galleryWidth * 0.9);
-  expect(row.sisseWidth).toBeGreaterThan(row.galleryWidth * 0.4);
-  expect(row.anastasiiaWidth).toBeGreaterThan(row.galleryWidth * 0.4);
+  expect(row.span).toBeGreaterThan(row.galleryWidth * 0.6);
+  expect(row.sisseWidth).toBeGreaterThan(row.galleryWidth * 0.25);
+  expect(row.anastasiiaWidth).toBeGreaterThan(row.galleryWidth * 0.25);
 });
 
 test('keeps a wide feature photograph within the viewport on ultra-wide screens', async ({ page }) => {

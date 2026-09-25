@@ -18,6 +18,7 @@
   --line: rgba(145, 166, 202, 0.56);
   --line-strong: rgba(255, 255, 255, 0.72);
   --page-gutter: clamp(1rem, 3.4vw, 2.25rem);
+  --page-max: 1920px;
   --module-gap: 1px;
   --ease-gate: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -70,11 +71,12 @@ img {
   top: 0;
   z-index: 20;
   display: grid;
+  width: min(100%, var(--page-max));
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   min-height: 3.125rem;
-  margin-inline: var(--page-gutter);
-  padding: 0;
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
   border-bottom: 1px solid var(--line);
   background: var(--room);
 }
@@ -419,8 +421,10 @@ img {
 
 #gallery-page {
   display: grid;
+  width: min(100%, var(--page-max));
   grid-template-columns: repeat(12, minmax(0, 1fr));
   min-height: 100vh;
+  margin-inline: auto;
   column-gap: var(--module-gap);
   row-gap: var(--page-gutter);
   align-items: start;
@@ -767,7 +771,10 @@ img {
 }
 
 .editorial-page {
+  width: auto;
+  max-width: var(--page-max);
   min-height: calc(100vh - 4.25rem);
+  margin-inline: auto;
   padding: clamp(2rem, 4vw, 4.5rem) var(--page-gutter) clamp(6rem, 10vw, 11rem);
 }
 
