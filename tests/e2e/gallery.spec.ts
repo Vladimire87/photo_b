@@ -681,6 +681,7 @@ test('keeps a wide feature photograph within the viewport on ultra-wide screens'
 
   await page.goto('/');
   await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
+  await expect(page.locator('.photo-card.is-feature').first()).toBeAttached();
 
   const featureMetrics = await page.evaluate(() => {
     const gallery = document.querySelector('#gallery')!.getBoundingClientRect();
@@ -941,6 +942,44 @@ test('keeps editorial navigation and long titles usable at 320px', async ({ page
   expect(metrics.navigationTargets.every(({ width, height }) => width >= 44 && height >= 44)).toBe(true);
 });
 
+test('loads the journal type locally and keeps text readable across pages', async ({ page }) => {
+  const remoteFonts: string[] = [];
+  await mockImages(page);
+  await page.route(/https:\/\/fonts\.(?:googleapis|gstatic)\.com\//, async (route) => {
+    remoteFonts.push(route.request().url());
+    await route.abort();
+  });
+
+  for (const width of [320, 390, 760, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const path of ['/', '/?view=collections', '/?view=about']) {
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+      const metrics = await page.evaluate(() => {
+        const visible = (selector: string) => [...document.querySelectorAll<HTMLElement>(selector)]
+          .filter((element) => element.getBoundingClientRect().width > 0);
+        return {
+          fontsReady: document.fonts.check('750 32px Archivo') && document.fonts.check('400 16px Onest'),
+          loadedFonts: [...document.fonts].filter((font) => font.status === 'loaded').map((font) => font.family),
+          overflow: document.documentElement.scrollWidth - window.innerWidth,
+          clippedTitles: visible('h1, .collection-card__issue').filter((element) => element.scrollWidth > element.clientWidth + 1).length,
+          bodySizes: visible('.hero__note, .editorial-page__intro, .about-page__body > p')
+            .map((element) => Number.parseFloat(getComputedStyle(element).fontSize)),
+          targets: visible('.editorial-nav a, .issue-switcher__control:not(.is-disabled)')
+            .map((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height })),
+        };
+      });
+      expect(metrics.fontsReady).toBe(true);
+      expect(metrics.loadedFonts).toEqual(expect.arrayContaining(['Archivo', 'Onest']));
+      expect(metrics.overflow).toBeLessThanOrEqual(1);
+      expect(metrics.clippedTitles).toBe(0);
+      expect(metrics.bodySizes.every((size) => size >= 16)).toBe(true);
+      expect(metrics.targets.every(({ width: targetWidth, height }) => targetWidth >= 44 && height >= 44)).toBe(true);
+    }
+  }
+  expect(remoteFonts).toEqual([]);
+});
+
 test('flows directly from the issue intro into the gallery on a short mobile screen', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await mockImages(page);
@@ -972,6 +1011,23 @@ test('opens and closes the touch-friendly lightbox', async ({ page }) => {
   await expect(page.locator('.glightbox-container')).toHaveAttribute('aria-modal', 'true');
   await expect(page.locator('.glightbox-container')).toHaveAttribute('aria-label', 'PHOTO B photo viewer');
   await expect(page.locator('.gclose')).toBeFocused();
+  const viewerTheme = await page.evaluate(() => {
+    const title = document.querySelector<HTMLElement>('.gslide.current .gslide-title')!;
+    const description = document.querySelector<HTMLElement>('.gslide.current .gslide-description')!;
+    const close = document.querySelector<HTMLElement>('.gclose')!.getBoundingClientRect();
+    return {
+      titleColor: getComputedStyle(title).color,
+      captionBackground: getComputedStyle(description).backgroundColor,
+      closeWidth: close.width,
+      closeHeight: close.height,
+    };
+  });
+  expect(viewerTheme.titleColor).toBe('rgb(255, 255, 255)');
+  if (page.viewportSize()!.width > 680) {
+    expect(viewerTheme.captionBackground).toBe('rgba(5, 10, 18, 0.98)');
+  }
+  expect(viewerTheme.closeWidth).toBeGreaterThanOrEqual(44);
+  expect(viewerTheme.closeHeight).toBeGreaterThanOrEqual(44);
   const lightboxBounds = await page.evaluate(() => {
     const image = document.querySelector<HTMLElement>('.gslide.current .gslide-image img')!;
     const description = document.querySelector<HTMLElement>('.gslide.current .gslide-description')!;
@@ -1046,7 +1102,7 @@ test('keeps a failed photo frame in place with stable numbering', async ({ page 
   const failedMediaContent = await firstCard.locator('.photo-card__media').evaluate(
     (media) => getComputedStyle(media, '::after').content,
   );
-  expect(failedMediaContent).toContain('FRAME UNAVAILABLE');
+  expect(failedMediaContent).toMatch(/frame unavailable/i);
   await expect(page.locator('.photo-card')).toHaveCount(photoCount);
   await expect(page.locator('.photo-card').first().locator('.photo-card__number')).toHaveText('01');
   await expect(page.locator('.photo-card').nth(1).locator('.photo-card__number')).toHaveText('02');

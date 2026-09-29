@@ -1,196 +1,193 @@
 ---
 name: PHOTO B
-description: A midnight cinematheque for a personal sequence of photographic issues
+description: A dark art journal for a personal sequence of photographic issues
 colors:
-  midnight-cobalt: "#081D39"
-  booth-black: "#050A12"
-  projector-yellow: "#F7D91A"
-  screen-white: "#FFFFFF"
-  reel-blue: "#91A6CA"
-  aperture-cool: "#0B1630"
+  midnight-cobalt: "#081d39"
+  booth-black: "#050a12"
+  projector-yellow: "#f7d91a"
+  screen-white: "#ffffff"
+  reel-blue: "#a5b7d3"
   aperture-deep: "#081126"
-  aperture-signal: "#102653"
-  frame-line: "rgba(145, 166, 202, 0.56)"
+  frame-line: "rgba(165, 183, 211, 0.28)"
+  control-line: "rgba(255, 255, 255, 0.65)"
 typography:
   display:
-    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
-    fontSize: "clamp(4.55rem, 7.2vw, 5.5rem)"
-    fontWeight: 600
-    lineHeight: 0.89
-    letterSpacing: "-0.015em"
-  headline:
-    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
-    fontSize: "clamp(3.6rem, 7vw, 6rem)"
-    fontWeight: 600
-    lineHeight: 0.86
-    letterSpacing: "-0.015em"
+    fontFamily: "Archivo, Arial Narrow, sans-serif"
+    fontSize: "clamp(3rem, 6.5vw, 6rem)"
+    fontWeight: 750
+    lineHeight: 1.02
+    letterSpacing: "-0.03em"
   title:
-    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
-    fontSize: "clamp(1.75rem, 3vw, 3.75rem)"
-    fontWeight: 600
-    lineHeight: 0.9
-    letterSpacing: "-0.015em"
+    fontFamily: "Archivo, Arial Narrow, sans-serif"
+    fontSize: "clamp(2rem, 3.2vw, 3rem)"
+    fontWeight: 650
+    lineHeight: 1.2
+    letterSpacing: "-0.025em"
+  prose:
+    fontFamily: "Onest, Arial, sans-serif"
+    fontSize: "clamp(1rem, 1.4vw, 1.25rem)"
+    fontWeight: 400
+    lineHeight: 1.65
   body:
-    fontFamily: "Lora, Georgia, serif"
-    fontSize: "clamp(0.9rem, 1.2vw, 1.1rem)"
+    fontFamily: "Onest, Arial, sans-serif"
+    fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.6
-  meta:
-    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
-    fontSize: "0.74rem"
-    fontWeight: 500
-    lineHeight: 1.4
-    letterSpacing: "0.045em"
   label:
-    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
-    fontSize: "0.8rem"
-    fontWeight: 600
-    lineHeight: 1.4
-    letterSpacing: "0.05em"
-  micro:
-    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
-    fontSize: "0.72rem"
-    fontWeight: 600
-    lineHeight: 1.4
-    letterSpacing: "0.08em"
+    fontFamily: "Onest, Arial, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 500
+    lineHeight: 1.6
+  meta:
+    fontFamily: "Onest, Arial, sans-serif"
+    fontSize: "0.8125rem"
+    fontWeight: 400
+    lineHeight: 1.5
 rounded:
   structural: "0"
 spacing:
   module-gap: "1px"
-  page-gutter: "clamp(1rem, 3.4vw, 2.25rem)"
-  section: "clamp(2rem, 4vw, 4.5rem)"
+  page-gutter: "clamp(1rem, 3vw, 3rem)"
 components:
   entry-control:
     backgroundColor: "transparent"
     textColor: "{colors.projector-yellow}"
     typography: "{typography.label}"
     rounded: "{rounded.structural}"
-    padding: "0.55rem 0.65rem"
-    height: "3rem"
-  program-frame:
-    backgroundColor: "{colors.midnight-cobalt}"
+    padding: "0.75rem 1rem"
+  entry-control-hover:
+    backgroundColor: "{colors.projector-yellow}"
+    textColor: "{colors.booth-black}"
+  entry-control-quiet:
+    backgroundColor: "transparent"
+    textColor: "{colors.reel-blue}"
+    padding: "0.75rem 0"
+  maturity-primary:
+    backgroundColor: "{colors.projector-yellow}"
+    textColor: "{colors.booth-black}"
+    rounded: "{rounded.structural}"
+    padding: "0.85rem 1.25rem"
+  maturity-secondary:
+    backgroundColor: "transparent"
     textColor: "{colors.screen-white}"
     rounded: "{rounded.structural}"
-    padding: "0.625rem 1rem 1rem 3px"
+    padding: "0.85rem 1.25rem"
 ---
 
 # Design System: PHOTO B
 
 ## Overview
 
-**Creative North Star: "Midnight Cinémathèque"**
+**Creative North Star: "Midnight Art Journal"**
 
-PHOTO B behaves like a late repertory screening rather than a magazine or social feed. Photographs are projected frames; issues are programs; navigation is the quiet apparatus that controls the sequence. The interface is spatial, dark, and decisive, with image light carrying more visual weight than decoration. Gallery, Collections, and About share the same compact header, cobalt field, square frame geometry, and restrained yellow signals.
+PHOTO B is a dark art journal for a personal selection of photographs. Large, expressive grotesk headings establish each surface; photographs carry the composition, while quiet text and numbered issues make it easy to return to a selection. Gallery, Collections, About, and the viewer share the established cobalt and yellow identity.
 
-The world uses projection-booth geometry: hard frame edges, numbered cue marks, program rails, abrupt fields of color, and measured transitions. Lora brings a quiet literary note to short prose while condensed Barlow Condensed keeps titles and image metadata legible at a glance. Avoid warm paper fields, ornamental type, rounded cards, glass panels, and generic black-and-neon portfolio styling.
+The inherited square framing and restrained signal color remain. Archivo replaces the previous condensed display face; Onest gives prose, navigation, and captions a clear common voice. Generous photographic space and short text keep the journal deliberate on desktop and readable on phones.
 
 **Key Characteristics:**
 
-- Drenched midnight-cobalt fields with one projector-yellow signal color.
-- Square, frame-like surfaces with no ornamental radius.
-- Barlow Condensed for the wordmark, titles, navigation, captions, and program notation; Lora for prose.
-- Large photographic beats separated by compact issue notation.
-- Motion behaves like a projector gate: reveal, hold, advance.
+- Midnight-cobalt fields with yellow wayfinding.
+- Variable Archivo display type and readable Onest text.
+- Natural photographic proportions, square edges, and thin rules.
+- Large photographic beats balanced by concise issue information.
+- Responsive layouts, visible focus, and reduced-motion support.
 
 ## Colors
 
-The palette is a dark screening room interrupted by a controlled beam of warm light.
+The established cobalt field stays dominant; yellow supplies warm, functional contrast.
 
 ### Primary
 
-- **Midnight Cobalt** (`#081D39`): the dominant field across navigation and main surfaces.
-- **Projector Yellow** (`#F7D91A`): active navigation, cue marks, focus, and current-state notation only.
-
-### Secondary
-
-- **Booth Black** (`#050A12`): deeper framing behind images and lightbox-adjacent surfaces.
-- **Reel Blue** (`#91A6CA`): secondary metadata and inactive controls.
-- **Aperture Cool** (`#0B1630`): the quiet loading field behind gallery and collection images.
-- **Aperture Deep** (`#081126`) and **Aperture Signal** (`#102653`): the restrained warm-up range for an unresolved image aperture.
+- **Midnight Cobalt:** the page, masthead, and common background.
+- **Projector Yellow:** active links, focus outlines, issue/photo numbers, and primary actions.
 
 ### Neutral
 
-- **Screen White** (`#FFFFFF`): primary text and image-failure surfaces.
+- **Booth Black:** image apertures, the maturity panel, and the near-black viewer overlay.
+- **Screen White:** primary text; it also fills maturity actions on hover.
+- **Reel Blue:** supporting prose, captions, counts, and inactive links.
+- **Aperture Deep:** the quiet loading placeholder behind unresolved images.
+- **Frame Line / Control Line:** subdued section dividers and stronger secondary-action borders.
 
-**The Signal Rule.** Projector Yellow communicates selection, focus, or sequence; it is never scattered as decoration.
+**The Signal Rule.** Yellow identifies selection, focus, issue numbers, and the next action; it stays subordinate to photographs.
 
 ## Typography
 
-**Display and Index Font:** Barlow Condensed (with Arial Narrow fallback)
-**Prose Font:** Lora (with Georgia fallback)
+**Display Font:** Archivo, with Arial Narrow and sans-serif fallbacks.
+**Body and Index Font:** Onest, with Arial and sans-serif fallbacks.
 
-**Character:** Display type should feel cut for a cinema program board. Lora appears only in short editorial prose and captions; compact uppercase labels function as indexing, not decorative eyebrows.
+Both variable Latin fonts are self-hosted WOFF2 with `font-display: swap`. Archivo supports weights 400–800 and native widths 62.5–125%; Onest supports weights 400–700. Use the English content scope of these files; additional scripts need suitable font assets.
 
-### Observed Role Scale
+### Hierarchy
 
-- **Gallery display** uses `clamp(4.55rem, 7.2vw, 5.5rem)` and breaks into two deliberate lines.
-- **Editorial page titles** use `clamp(3.6rem, 7vw, 6rem)`; the About statement is `clamp(3.7rem, 6vw, 5.5rem)` on desktop.
-- **Collection issue titles** use `clamp(1.75rem, 3vw, 3.75rem)`.
-- **Featured photograph captions** use `clamp(0.9rem, 1.4vw, 1.25rem)` in the side rail, keeping names together on two balanced lines where needed.
-- **Meta** carries photograph numbers, captions, and counts at `0.74rem`; **micro** carries compact cues and unavailable-image notices at `0.72rem`.
-- Program-end issue markers use `clamp(1.5rem, 2.8vw, 2rem)`.
-- Mobile overrides may compress a role to protect fit and preserve the 44px target rule; they are functional adaptations, not new visual voices.
+- **Display:** the frontmatter role supplies editorial page headings. Gallery uses `clamp(3rem, 5.3vw, 6rem)` with line-height 0.98 and a 6.5ch measure. Archivo headings use weight 750 and native width 75%; About and the maturity title use 85% on desktop.
+- **Title:** issue titles and the closing issue marker use weight 650 and width 85%. The feature photograph number shares the title size.
+- **Prose:** the maturity explanation uses the fluid prose role and a 36ch measure. About’s lead is a distinct `clamp(1.5rem, 2.4vw, 2rem)` treatment with line-height 1.4.
+- **Body:** supporting copy uses the 16px role; About’s secondary prose has line-height 1.75 and a maximum measure of 65ch.
+- **Label:** primary navigation uses 14px Onest at weight 500; actions use weight 600. Sentence case is the default.
+- **Meta:** captions and supporting counts use 13px Onest. Photo numbers use weight 600 and tabular figures; long captions wrap at word boundaries.
 
-**The Program Rule.** Large display type states the current viewing context once; compact labels carry all repeated issue and image notation.
+At 680px and below, display becomes `clamp(2.5rem, 10.5vw, 4rem)` and title becomes `clamp(1.5rem, 6vw, 2rem)`. Gallery and About headings use their observed `clamp(2.5rem, 11vw, 4rem)` variant. The compact single-row phone navigation uses the meta size.
+
+**The Type Width Rule.** Use Archivo’s native width axis for condensed headings. Let text wrap naturally; never compress glyphs with transforms or insert layout-only line breaks.
 
 ## Layout
 
-Desktop uses a twelve-column projection grid with a fluid page gutter and 1px modular seams. The opening pairs a quiet three-column issue panel with a nine-column photographic stage. Portrait-led issues use a deliberate editorial cadence: three photographs, a five-photograph strip, a full-width feature with a two-column caption rail, then full-width four- and five-photograph rows. Additional photographs repeat the four/five rhythm; shorter or landscape-led issues fall back to the adaptive aspect-ratio packer. A ruled, full-width colophon closes the issue. Navigation stays visually secondary but remains reachable without crossing the photograph.
+Main surfaces share a 1920px maximum width and the fluid page gutter. Gallery starts on a twelve-column grid: a three-column introduction beside a nine-column photographic stage. Between 681px and 900px this becomes four columns beside eight. The eligible portrait-led sequence opens with three photographs, then five, a page-wide feature with a two-column caption rail, then four and five. Later rows adapt to remaining image proportions; shorter or unsuitable issues use the adaptive packer. This cadence belongs to Gallery, not every future surface.
 
-Collections use repeatable screening-program blocks rather than generic cards. About uses the same frame geometry with a slower, text-led pace.
+Collections has two poster columns, with contained covers above issue information. About is an open text composition: a large statement on the left and short prose, signature, and latest-issue action on the right. It has no enclosing border box.
 
-At 900px the opening becomes a four-column issue panel beside an eight-column stage. At 840px the header wraps into two compact rows. At 680px the issue introduction moves above the stage and photographs use the full available width; the phone header groups the wordmark, navigation, and issue status into three clear rows. Collections stack cover and issue information, while About turns into a single-column text frame. Nothing relies on hover or off-screen stagger.
+At 1100px and below, the issue switcher moves to a second masthead row and the Collections introduction stacks. At 680px and below, the page gutter is 1rem, Gallery becomes one full-width image column in source order, Collections becomes one poster column, and About stacks. From 380px through 680px, brand and primary navigation share one row; Gallery adds an issue row. Narrower phones stack brand and navigation. The phone header stays in normal flow; larger headers are sticky.
+
+**The Photograph Rule.** Preserve source proportions. Compose the sequence through image size and spacing rather than crops that regularize every frame.
 
 ## Elevation & Depth
 
-The system has no conventional shadows and no glass. Depth comes from nested dark fields, image luminance, hard occlusion, and the contrast between the cobalt room and black frame apertures. Image hover may brighten like a projector lamp but must not lift like a card.
+No conventional shadows or glass are used. Image luminance, near-black apertures, cobalt fields, and thin rules provide depth. Loaded images brighten slightly on hover-capable devices; they do not lift. Loading placeholders pulse, photographs settle through opacity, and all transitions and animation stop under reduced motion.
 
 ## Shapes
 
-All structural surfaces are square. Thin frame lines, crop marks, side rails, and rectangular apertures form the geometry. Circles are reserved for cue dots and status markers.
+Structural corners are square. Rectangular photographs, poster covers, outlined actions, and thin horizontal rules carry the geometry. The existing PHOTO B mark remains the yellow identity asset; new decorative geometry is unnecessary.
 
 ## Components
 
-### Program Header
+### Masthead and Navigation
 
-The header is a compact sticky row with the wordmark, centered primary navigation, and current issue. A thin reel-blue rule anchors it; active navigation receives one projector-yellow underline. Photo position remains available to assistive technology and appears beside issue status at narrower widths. On tablet the header becomes two rows; on mobile the wordmark, navigation, and issue status each get a concise row.
+A compact common masthead carries the mark and wordmark, primary links, and Gallery’s issue switcher. Current navigation turns yellow with a 3px bottom rule. Navigation and issue controls have at least 44px targets. Disabled issue controls remain visible at reduced opacity. Live photo position is available to assistive technology, rather than a visible secondary counter.
 
-### Program Panel
+### Actions
 
-The opening panel holds the current issue, two-line title, one-sentence context, photo count, and issue/year. It stays in the page flow beside the gallery on desktop and becomes an opening introduction above the photographs on mobile. The 18+ confirmation stays in its separate entry gate.
+The entry action is a square yellow outline, at least 48px tall; hover fills it yellow with dark text. Quiet history links have no border and turn yellow on hover. Maturity actions are at least 52px tall: solid yellow primary and white-outline secondary, both turning white with dark text on hover. Focus uses a 3px yellow outline with a 4px offset; image/link frames inset that outline to avoid clipping.
 
 ### Photographic Frames
 
-Frames sit on quiet dark apertures. The editorial composition uses fixed, reference-derived slots with controlled `object-fit: cover` crops so the 3/5/feature/4/5 cadence stays stable across issues. The adaptive fallback preserves each photograph's natural aspect ratio with `object-fit: contain` for short or landscape-led issues. Failed frames retain their place and explain the error.
+Images retain natural ratios with `object-fit: contain`. A number and optional caption sit underneath; desktop features move the caption into a side rail, while phones restore the normal caption row. Failed external images keep their layout slot and show an unavailable message. Loading and failure text uses the meta role.
 
-### Collection Programs
+### Collection Posters
 
-Each collection is one square screening block: cover image on the left, issue number, date, latest status, and photo count on the right. Mobile stacks the same block without changing its information order.
+A 4:5 cover aperture contains the source image. Below it, an Archivo issue title precedes the real photograph count and a yellow Latest marker when applicable. The entire poster is linked; hover highlights the issue title. It has no elevated card shell or badge pill.
 
-### About
+### Issue Close
 
-About uses a restrained cobalt frame rather than a separate accent-color panel. A condensed statement balances short Lora prose; a fine rule and quiet signature close the page. On mobile, the statement, prose, and signature stack inside the same square-edged frame.
+A ruled colophon shows the actual issue/year and photograph count, the next action, an optional history link, and the photo range. It uses an issue title rather than a decorative end label. On phones the action moves below the title and count.
 
-### Program End
+### Maturity Gate and Viewer
 
-The full-width colophon closes each issue with an end cue, issue/year, live photograph count, and a bracketed next step. A lower ruled row carries the prior issue link and numbered photo range. The row reorganizes at tablet and mobile widths without clipping its text.
-
-### Navigation
-
-Primary links use the label face and a bottom projector-yellow cue for current state. Focus uses a solid 3px signal outline. Disabled issue controls remain visible but quiet so the sequence is understandable.
+Gallery and Collections require the accessible 18+ confirmation before photograph requests begin. The gate uses the same display face, dark panel, and action variants. The lightbox has a near-black overlay and dark captions, preserves the image proportions, and uses square 48px cobalt controls. Keyboard and touch browsing remain available; mobile viewer geometry respects safe areas.
 
 ## Do's and Don'ts
 
 ### Do:
 
-- **Do** let one photograph dominate the opening viewport.
-- **Do** use issue numbers and view position as functional wayfinding.
-- **Do** keep transition timing deliberate and reduced-motion safe.
-- **Do** preserve clear focus states and 44px mobile targets.
+- **Do** use the local Archivo and Onest files and the named type roles.
+- **Do** keep issue counts, captions, and photo position tied to actual content.
+- **Do** preserve visible keyboard focus, 44px navigation targets, and 48px viewer controls.
+- **Do** verify natural wrapping, image failures, and horizontal overflow on phones.
+- **Do** respect reduced motion and keep photograph requests behind the maturity confirmation.
 
 ### Don't:
 
-- **Don't** use warm cream paper, decorative serif styles, or italic display accents; keep Lora to prose and captions.
-- **Don't** use rounded cards, pills, glass, glow borders, or decorative gradients.
-- **Don't** turn every label into uppercase microcopy; reserve it for program notation.
-- **Don't** use a free-form image feed where the curated issue rhythm is the point.
+- **Don't** introduce ornamental rounded cards, glass panels, glow borders, or display shadows.
+- **Don't** use forced line breaks, horizontal type transforms, or tiny caption text to make a layout fit.
+- **Don't** add decorative eyebrows or repeat section labels as ornament.
+- **Don't** present external photographs as commercially cleared or invent product evidence.

@@ -51,6 +51,13 @@ Set `VITE_YANDEX_METRIKA_ID` only when building for a different counter.
 
 ## Checks and production build
 
+The interface uses [Archivo](https://www.omnibus-type.com/fonts/archivo/) for
+display type and [Onest](https://onest.md/en) for body text and navigation.
+Latin variable WOFF2 subsets are self-hosted in `public/fonts/`; their SIL Open
+Font Licenses are included alongside the files. There are no runtime Google
+Fonts requests. Fonts are preloaded and cached for one week by Cloudflare Pages.
+`DESIGN.md` records the typography roles and responsive page layouts.
+
 ```bash
 npm run test:unit
 npm run test:e2e

@@ -1,301 +1,297 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-24T19:13:04.614Z",
+  "generatedAt": "2026-09-29T19:36:20.823Z",
   "title": "Design System: PHOTO B",
   "extensions": {
     "colorMeta": {
       "midnight-cobalt": {
         "role": "primary",
         "displayName": "Midnight Cobalt",
-        "canonical": "#081D39",
+        "canonical": "#081d39",
         "tonalRamp": [
-          "#020817",
-          "#04102A",
-          "#081D39",
-          "#153060",
-          "#2F4D7A",
-          "#61759A",
-          "#A9B5CC",
-          "#EEF1F6"
+          "oklch(15% 0.06054 256.56)",
+          "oklch(27% 0.06054 256.56)",
+          "oklch(39% 0.06054 256.56)",
+          "oklch(51% 0.06054 256.56)",
+          "oklch(63% 0.06054 256.56)",
+          "oklch(75% 0.06054 256.56)",
+          "oklch(87% 0.06054 256.56)",
+          "oklch(95% 0.06054 256.56)"
         ]
       },
       "booth-black": {
         "role": "neutral",
         "displayName": "Booth Black",
-        "canonical": "#050A12",
+        "canonical": "#050a12",
         "tonalRamp": [
-          "#020305",
-          "#050A12",
-          "#101A28",
-          "#253142",
-          "#485466",
-          "#77818E",
-          "#B5BBC3",
-          "#F0F1F3"
+          "oklch(15% 0.02012 255.76)",
+          "oklch(27% 0.02012 255.76)",
+          "oklch(39% 0.02012 255.76)",
+          "oklch(51% 0.02012 255.76)",
+          "oklch(63% 0.02012 255.76)",
+          "oklch(75% 0.02012 255.76)",
+          "oklch(87% 0.02012 255.76)",
+          "oklch(95% 0.02012 255.76)"
         ]
       },
       "projector-yellow": {
-        "role": "secondary",
+        "role": "primary",
         "displayName": "Projector Yellow",
-        "canonical": "#F7D91A",
+        "canonical": "#f7d91a",
         "tonalRamp": [
-          "#2A2100",
-          "#594500",
-          "#8B6C00",
-          "#BE9800",
-          "#EFC52A",
-          "#F7D91A",
-          "#FFE98F",
-          "#FFF9DD"
+          "oklch(15% 0.17922 98.81)",
+          "oklch(27% 0.17922 98.81)",
+          "oklch(39% 0.17922 98.81)",
+          "oklch(51% 0.17922 98.81)",
+          "oklch(63% 0.17922 98.81)",
+          "oklch(75% 0.17922 98.81)",
+          "oklch(87% 0.17922 98.81)",
+          "oklch(95% 0.17922 98.81)"
         ]
       },
       "screen-white": {
         "role": "neutral",
         "displayName": "Screen White",
-        "canonical": "#FFFFFF",
+        "canonical": "#ffffff",
         "tonalRamp": [
-          "#24231F",
-          "#474641",
-          "#6D6B65",
-          "#92908A",
-          "#B8B6B0",
-          "#D8D6D0",
-          "#FFFFFF",
-          "#FFFEFA"
+          "oklch(15% 0.00000 89.88)",
+          "oklch(27% 0.00000 89.88)",
+          "oklch(39% 0.00000 89.88)",
+          "oklch(51% 0.00000 89.88)",
+          "oklch(63% 0.00000 89.88)",
+          "oklch(75% 0.00000 89.88)",
+          "oklch(87% 0.00000 89.88)",
+          "oklch(95% 0.00000 89.88)"
         ]
       },
       "reel-blue": {
-        "role": "tertiary",
+        "role": "neutral",
         "displayName": "Reel Blue",
-        "canonical": "#91A6CA",
+        "canonical": "#a5b7d3",
         "tonalRamp": [
-          "#111B2E",
-          "#253655",
-          "#40577C",
-          "#60789F",
-          "#91A6CA",
-          "#B1C0DA",
-          "#D2DBEA",
-          "#F2F5FA"
-        ]
-      },
-      "aperture-cool": {
-        "role": "surface",
-        "displayName": "Aperture Cool",
-        "canonical": "#0B1630",
-        "tonalRamp": [
-          "#030713",
-          "#061026",
-          "#0B1630",
-          "#18315F",
-          "#315488",
-          "#617AA5",
-          "#A8B6CF",
-          "#EEF2F8"
+          "oklch(15% 0.04482 259.18)",
+          "oklch(27% 0.04482 259.18)",
+          "oklch(39% 0.04482 259.18)",
+          "oklch(51% 0.04482 259.18)",
+          "oklch(63% 0.04482 259.18)",
+          "oklch(75% 0.04482 259.18)",
+          "oklch(87% 0.04482 259.18)",
+          "oklch(95% 0.04482 259.18)"
         ]
       },
       "aperture-deep": {
-        "role": "surface",
+        "role": "neutral",
         "displayName": "Aperture Deep",
         "canonical": "#081126",
         "tonalRamp": [
-          "#02050D",
-          "#081126",
-          "#142343",
-          "#2A4675",
-          "#4A6797",
-          "#7890B5",
-          "#B7C4D8",
-          "#F1F4F9"
-        ]
-      },
-      "aperture-signal": {
-        "role": "surface",
-        "displayName": "Aperture Signal",
-        "canonical": "#102653",
-        "tonalRamp": [
-          "#040A19",
-          "#0B1734",
-          "#102653",
-          "#23477E",
-          "#466BA0",
-          "#7893BC",
-          "#B8C7DD",
-          "#F1F5FA"
+          "oklch(15% 0.04527 264.63)",
+          "oklch(27% 0.04527 264.63)",
+          "oklch(39% 0.04527 264.63)",
+          "oklch(51% 0.04527 264.63)",
+          "oklch(63% 0.04527 264.63)",
+          "oklch(75% 0.04527 264.63)",
+          "oklch(87% 0.04527 264.63)",
+          "oklch(95% 0.04527 264.63)"
         ]
       },
       "frame-line": {
         "role": "neutral",
         "displayName": "Frame Line",
-        "canonical": "rgba(145, 166, 202, 0.56)",
+        "canonical": "rgba(165, 183, 211, 0.28)",
         "tonalRamp": [
-          "#111827",
-          "#26354E",
-          "#425674",
-          "#667B9B",
-          "#91A6CA",
-          "#B5C2D9",
-          "#D8DFEB",
-          "#F4F6FA"
+          "oklch(15% 0.04482 259.18)",
+          "oklch(27% 0.04482 259.18)",
+          "oklch(39% 0.04482 259.18)",
+          "oklch(51% 0.04482 259.18)",
+          "oklch(63% 0.04482 259.18)",
+          "oklch(75% 0.04482 259.18)",
+          "oklch(87% 0.04482 259.18)",
+          "oklch(95% 0.04482 259.18)"
+        ]
+      },
+      "control-line": {
+        "role": "neutral",
+        "displayName": "Control Line",
+        "canonical": "rgba(255, 255, 255, 0.65)",
+        "tonalRamp": [
+          "oklch(15% 0.00000 89.88)",
+          "oklch(27% 0.00000 89.88)",
+          "oklch(39% 0.00000 89.88)",
+          "oklch(51% 0.00000 89.88)",
+          "oklch(63% 0.00000 89.88)",
+          "oklch(75% 0.00000 89.88)",
+          "oklch(87% 0.00000 89.88)",
+          "oklch(95% 0.00000 89.88)"
         ]
       }
     },
     "typographyMeta": {
       "display": {
-        "displayName": "Program Display",
-        "purpose": "One decisive title per surface."
-      },
-      "body": {
-        "displayName": "Screening Notes",
-        "purpose": "Readable context and curator copy."
-      },
-      "label": {
-        "displayName": "Program Notation",
-        "purpose": "Issue, photo, state, and navigation labels."
-      },
-      "headline": {
-        "displayName": "Opening Headline",
-        "purpose": "The decisive title at the start of a viewing surface."
+        "displayName": "Journal Display",
+        "purpose": "Large editorial headings; native Archivo width varies by surface."
       },
       "title": {
         "displayName": "Issue Title",
-        "purpose": "Large collection and issue markers."
+        "purpose": "Collection and closing issue markers."
+      },
+      "prose": {
+        "displayName": "Readable Prose",
+        "purpose": "Fluid maturity explanation."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Supporting text and curator copy."
+      },
+      "label": {
+        "displayName": "Navigation and Actions",
+        "purpose": "Primary links and action labels; actions use weight 600."
       },
       "meta": {
-        "displayName": "Frame Metadata",
-        "purpose": "Photo numbers, captions, counts, and supporting notation."
-      },
-      "micro": {
-        "displayName": "Aperture Microcopy",
-        "purpose": "Compact cues and image-state notices."
+        "displayName": "Photograph Metadata",
+        "purpose": "Captions, counts, status, and compact phone navigation."
       }
     },
     "shadows": [],
     "motion": [
       {
-        "name": "aperture-warmup",
-        "value": "1.3s ease-in-out infinite alternate",
-        "purpose": "An unresolved image aperture holds a quiet projector-like pulse until the image settles."
+        "name": "state-change",
+        "value": "180ms ease",
+        "purpose": "Navigation color and active-rule opacity."
       },
       {
         "name": "arrangement-reveal",
         "value": "240ms ease",
-        "purpose": "The gallery fades in once its measured geometry is ready."
+        "purpose": "Reveal the measured gallery."
       },
       {
         "name": "image-settle",
-        "value": "420ms ease",
-        "purpose": "Loaded gallery and collection images settle into the screening surface."
+        "value": "320ms ease",
+        "purpose": "Loaded photograph opacity."
       },
       {
-        "name": "state-change",
-        "value": "180ms ease",
-        "purpose": "Navigation and cue-state color changes."
+        "name": "image-hover",
+        "value": "200ms ease",
+        "purpose": "Photograph brightness feedback."
       },
       {
-        "name": "projector-lamp",
-        "value": "220ms ease",
-        "purpose": "A loaded frame brightens like a projector lamp on hover without lifting the card."
+        "name": "skeleton-pulse",
+        "value": "1.6s ease-in-out infinite",
+        "purpose": "Pending external-image placeholder; disabled under reduced motion."
       }
     ],
     "breakpoints": [
       {
-        "name": "stage-compact",
+        "name": "masthead-wrap",
+        "value": "1100px"
+      },
+      {
+        "name": "compact-stage",
         "value": "900px"
       },
       {
-        "name": "tablet-header",
-        "value": "840px"
-      },
-      {
-        "name": "mobile",
+        "name": "single-column",
         "value": "680px"
       },
       {
-        "name": "short-screen",
-        "value": "650px height"
+        "name": "phone-single-row-header",
+        "value": "380px"
       }
     ]
   },
   "components": [
     {
-      "name": "Entry Control",
+      "name": "Entry Action",
       "kind": "button",
       "refersTo": "entry-control",
-      "description": "Projector-yellow bracket link for the next step; issue history remains a quiet text link.",
-      "html": "<div class=\"ds-end-actions\"><a class=\"ds-entry\" href=\"#\">VIEW COLLECTIONS</a><a class=\"ds-entry ds-entry--quiet\" href=\"#\">PREVIOUS ISSUE — 01 / 2026 →</a></div>",
-      "css": ".ds-end-actions { display:flex; flex-wrap:wrap; align-items:center; gap:16px; } .ds-entry { display:inline-flex; min-height:48px; align-items:center; gap:7px; padding:9px 10px; color:#F7D91A; background:transparent; font:700 13px/1.4 'Barlow Condensed',Arial Narrow,sans-serif; letter-spacing:.06em; text-decoration:none; text-transform:uppercase; } .ds-entry::before,.ds-entry::after { color:#F7D91A; font-size:1.3em; font-weight:400; line-height:1; } .ds-entry::before { content:'['; } .ds-entry::after { content:']'; } .ds-entry--quiet { min-height:40px; padding:0; color:#91A6CA; font-size:12px; font-weight:500; } .ds-entry--quiet::before,.ds-entry--quiet::after { display:none; } .ds-entry:hover { color:#FFFFFF; } .ds-entry--quiet:hover { color:#F7D91A; } .ds-entry:focus-visible { outline:3px solid #F7D91A; outline-offset:-3px; }"
+      "description": "Outlined next step, filled yellow on hover.",
+      "html": "<a class=\"ds-entry\" href=\"#\">View collections</a>",
+      "css": ".ds-entry{display:inline-flex;align-items:center;justify-content:center;min-height:48px;gap:.5rem;padding:.75rem 1rem;border:1px solid var(--signal,#f7d91a);border-radius:0;color:var(--signal,#f7d91a);background:transparent;font:600 .875rem/1.5 var(--font-body,Onest,Arial,sans-serif);text-decoration:none;transition:color 180ms,background-color 180ms}.ds-entry:hover{color:var(--aperture,#050a12);background:var(--signal,#f7d91a)}.ds-entry:focus-visible{outline:3px solid var(--signal,#f7d91a);outline-offset:4px}"
+    },
+    {
+      "name": "Quiet History Link",
+      "kind": "button",
+      "refersTo": "entry-control-quiet",
+      "description": "Borderless history navigation.",
+      "html": "<a class=\"ds-entry ds-quiet\" href=\"#\">Previous issue</a>",
+      "css": ".ds-entry{display:inline-flex;align-items:center;justify-content:center;min-height:48px;gap:.5rem;padding:.75rem 1rem;border:1px solid var(--signal,#f7d91a);border-radius:0;color:var(--signal,#f7d91a);background:transparent;font:600 .875rem/1.5 var(--font-body,Onest,Arial,sans-serif);text-decoration:none;transition:color 180ms,background-color 180ms}.ds-entry:hover{color:var(--aperture,#050a12);background:var(--signal,#f7d91a)}.ds-entry:focus-visible{outline:3px solid var(--signal,#f7d91a);outline-offset:4px}.ds-quiet{justify-content:flex-start;padding-inline:0;border:0;color:var(--reel,#a5b7d3);font-weight:400}.ds-quiet:hover{color:var(--signal,#f7d91a);background:transparent}"
+    },
+    {
+      "name": "Maturity Primary",
+      "kind": "button",
+      "refersTo": "maturity-primary",
+      "description": "Confirmation action.",
+      "html": "<button class=\"ds-maturity-primary\" type=\"button\">Enter PHOTO B</button>",
+      "css": ".ds-maturity-primary{min-height:52px;padding:.85rem 1.25rem;border:1px solid var(--signal,#f7d91a);border-radius:0;color:var(--aperture,#050a12);background:var(--signal,#f7d91a);font:600 .875rem/1.6 var(--font-body,Onest,Arial,sans-serif);cursor:pointer;transition:color 180ms,background-color 180ms}.ds-maturity-primary:hover{color:var(--aperture,#050a12);background:var(--screen,#ffffff);border-color:var(--screen,#ffffff)}.ds-maturity-primary:focus-visible{outline:3px solid var(--signal,#f7d91a);outline-offset:4px}"
+    },
+    {
+      "name": "Maturity Secondary",
+      "kind": "button",
+      "refersTo": "maturity-secondary",
+      "description": "Exit action.",
+      "html": "<button class=\"ds-maturity-secondary\" type=\"button\">Leave</button>",
+      "css": ".ds-maturity-secondary{min-height:52px;padding:.85rem 1.25rem;border:1px solid var(--line-strong,rgba(255,255,255,.65));border-radius:0;color:var(--screen,#ffffff);background:transparent;font:600 .875rem/1.6 var(--font-body,Onest,Arial,sans-serif);cursor:pointer;transition:color 180ms,background-color 180ms}.ds-maturity-secondary:hover{color:var(--aperture,#050a12);background:var(--screen,#ffffff);border-color:var(--screen,#ffffff)}.ds-maturity-secondary:focus-visible{outline:3px solid var(--signal,#f7d91a);outline-offset:4px}"
     },
     {
       "name": "Primary Navigation",
       "kind": "nav",
-      "description": "Centered links on a quiet cobalt header; the active section receives a short yellow underline.",
-      "html": "<header class=\"ds-header\"><a class=\"ds-wordmark\" href=\"#\">PHOTO B</a><nav class=\"ds-nav\"><a class=\"ds-nav-active\" href=\"#\">LATEST</a><a href=\"#\">COLLECTIONS</a><a href=\"#\">ABOUT</a></nav><span class=\"ds-issue\">ISSUE 02 / 2026</span></header>",
-      "css": ".ds-header { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; min-height:51px; padding:0 12px; border-bottom:1px solid rgba(145,166,202,.42); color:#FFFFFF; background:#081D39; } .ds-wordmark { justify-self:start; color:inherit; font:600 19px/1 'Barlow Condensed',Arial Narrow,sans-serif; letter-spacing:.035em; text-decoration:none; } .ds-nav { display:flex; align-items:stretch; gap:clamp(16px,4.7vw,48px); } .ds-nav a { position:relative; display:inline-flex; min-height:50px; align-items:center; padding:0 3px; color:inherit; font:500 12px/1.4 'Barlow Condensed',Arial Narrow,sans-serif; letter-spacing:.065em; text-decoration:none; } .ds-nav a::after { position:absolute; right:0; bottom:8px; left:0; height:2px; background:#F7D91A; content:''; opacity:0; } .ds-nav a:hover,.ds-nav .ds-nav-active { color:#F7D91A; } .ds-nav .ds-nav-active::after { opacity:1; } .ds-issue { justify-self:end; color:#FFFFFF; font:500 13px/1.4 'Barlow Condensed',Arial Narrow,sans-serif; letter-spacing:.045em; } .ds-nav a:focus-visible,.ds-wordmark:focus-visible { outline:3px solid #F7D91A; outline-offset:-3px; }"
+      "description": "Sentence-case masthead links with a yellow active rule.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Primary navigation\"><a class=\"ds-active\" href=\"#\" aria-current=\"page\">Latest</a><a href=\"#\">Collections</a><a href=\"#\">About</a></nav>",
+      "css": ".ds-nav{display:flex;gap:clamp(.5rem,2vw,2rem);background:var(--room,#081d39)}.ds-nav a{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:72px;padding-inline:.5rem;color:var(--screen,#ffffff);font:500 .875rem/1.6 var(--font-body,Onest,Arial,sans-serif);text-decoration:none;transition:color 180ms ease}.ds-nav a:hover,.ds-nav .ds-active{color:var(--signal,#f7d91a)}.ds-active::after{position:absolute;right:.5rem;bottom:0;left:.5rem;height:3px;background:var(--signal,#f7d91a);content:\"\"}.ds-nav a:focus-visible{outline:3px solid var(--signal,#f7d91a);outline-offset:4px}"
     },
     {
-      "name": "Program Panel",
-      "kind": "custom",
-      "refersTo": "program-frame",
-      "description": "A static issue introduction beside the image sequence, with the mature-content confirmation handled by a separate entry gate.",
-      "html": "<section class=\"ds-program\"><span class=\"ds-cue\">ISSUE 02</span><h2>PHOTOS<br>I KEEP</h2><p>A personal selection, published in numbered issues.</p><span class=\"ds-program__count\">40 PHOTOS · ISSUE 02 / 2026</span></section>",
-      "css": ".ds-program { position:relative; display:flex; width:238px; min-height:468px; flex-direction:column; padding:10px 30px 16px 3px; color:#FFFFFF; background:#081D39; } .ds-program::after { position:absolute; top:0; right:10px; bottom:0; border-right:1px solid rgba(145,166,202,.42); content:''; } .ds-cue { margin-bottom:4px; color:#F7D91A; font:600 13px/1.4 'Barlow Condensed',Arial Narrow,sans-serif; letter-spacing:.06em; text-transform:uppercase; } .ds-program h2 { margin:-4px 0 0 -2px; font:600 clamp(73px,7.2vw,88px)/.89 'Barlow Condensed',Arial Narrow,sans-serif; letter-spacing:-.015em; text-transform:uppercase; transform:scaleX(.85); transform-origin:top left; } .ds-program p { max-width:208px; margin:14px 0 0; color:#91A6CA; font:400 14px/1.5 'Lora',Georgia,serif; } .ds-program__count { max-width:192px; margin-top:12px; padding-top:13px; border-top:1px solid rgba(145,166,202,.42); color:#91A6CA; font:500 11px/1.4 'Barlow Condensed',Arial Narrow,sans-serif; letter-spacing:.035em; text-transform:uppercase; white-space:nowrap; }"
+      "name": "Latest Marker",
+      "kind": "chip",
+      "description": "Unboxed functional label for the newest collection.",
+      "html": "<span class=\"ds-latest\">Latest</span>",
+      "css": ".ds-latest{color:var(--signal,#f7d91a);font:600 .8125rem/1.6 var(--font-body,Onest,Arial,sans-serif);letter-spacing:.025em}"
     },
     {
       "name": "Photographic Frame",
       "kind": "card",
-      "description": "Square-edged black aperture that preserves each source photograph ratio and wraps longer names at word boundaries.",
-      "html": "<figure class=\"ds-frame\"><div class=\"ds-aperture\">PHOTOGRAPH</div><figcaption><strong>01</strong><span>FRAME CAPTION</span></figcaption></figure>",
-      "css": ".ds-frame { margin:0; color:#91A6CA; background:#081D39; font:500 12px/1.4 'Barlow Condensed',Arial Narrow,sans-serif; letter-spacing:.045em; text-transform:uppercase; } .ds-aperture { display:grid; overflow:hidden; aspect-ratio:var(--photo-aspect,4/5); place-items:center; color:#91A6CA; background:#050A12; border:1px solid rgba(145,166,202,.42); } .ds-frame figcaption { display:grid; grid-template-columns:auto minmax(0,1fr); gap:12px; padding-top:5px; } .ds-frame strong { color:#F7D91A; font-size:14px; } .ds-frame:focus-within { outline:3px solid #F7D91A; } .ds-frame.is-error .ds-aperture::after { content:'FRAME UNAVAILABLE'; font-size:11px; letter-spacing:.08em; } .ds-frame.is-error .ds-aperture { color:rgba(145,166,202,.6); } .ds-frame.is-error strong { color:#91A6CA; }"
-    },
-    {
-      "name": "Current Issue Marker",
-      "kind": "chip",
-      "description": "Compact rectangular state label used only for the latest program.",
-      "html": "<span class=\"ds-latest\">LATEST</span>",
-      "css": ".ds-latest { display:inline-block; padding:8px 11px; color:#050A12; background:#F7D91A; font:700 12px/1.4 'Archivo Narrow',Arial Narrow,sans-serif; letter-spacing:.05em; }"
-    },
-    {
-      "name": "Program End",
-      "kind": "custom",
-      "description": "A full-width colophon: end cue, issue and count, bracketed next step, previous issue link, and photo range.",
-      "html": "<section class=\"ds-program-end\"><div class=\"ds-program-end__head\"><span class=\"ds-program-end__cue\">END OF ISSUE</span><h2>ISSUE 02 / 2026</h2><p>40 photographs</p><a class=\"ds-entry\" href=\"#\">VIEW COLLECTIONS</a></div><div class=\"ds-program-end__foot\"><a class=\"ds-entry ds-entry--quiet\" href=\"#\">PREVIOUS ISSUE — 01 / 2026 →</a><span>01 — 40</span></div></section>",
-      "css": ".ds-program-end { border-top:1px solid rgba(145,166,202,.42); color:#FFFFFF; background:#081D39; } .ds-program-end__head { display:grid; grid-template-columns:30% 23% 23% 24%; align-items:center; min-height:84px; } .ds-program-end__cue { display:flex; align-items:center; gap:13px; color:#FFFFFF; font:500 clamp(24px,2.8vw,32px)/1 'Barlow Condensed',Arial Narrow,sans-serif; text-transform:uppercase; white-space:nowrap; } .ds-program-end__cue::after { height:1px; flex:1; background:rgba(145,166,202,.42); content:''; } .ds-program-end h2,.ds-program-end p { display:flex; height:100%; align-items:center; margin:0; padding:0 24px; border-left:1px solid rgba(145,166,202,.42); } .ds-program-end h2 { font:500 clamp(24px,2.8vw,32px)/1 'Barlow Condensed',Arial Narrow,sans-serif; text-transform:uppercase; white-space:nowrap; } .ds-program-end p { gap:4px; color:#91A6CA; font:400 14px/1.4 'Lora',Georgia,serif; white-space:nowrap; } .ds-program-end__head .ds-entry { justify-self:end; margin-right:32px; } .ds-program-end__foot { display:flex; min-height:56px; align-items:center; justify-content:space-between; border-top:1px solid rgba(145,166,202,.42); color:#91A6CA; font:500 12px/1.4 'Barlow Condensed',Arial Narrow,sans-serif; letter-spacing:.07em; text-transform:uppercase; } .ds-program-end__foot .ds-entry { min-height:40px; padding:0; }"
+      "description": "Natural-ratio aperture and readable number/caption; neutral placeholder stands in for external imagery in this preview.",
+      "html": "<figure class=\"ds-frame\"><a class=\"ds-frame-media\" href=\"#\" aria-label=\"Open photograph\"><span>Photograph</span></a><figcaption><strong>01</strong><span>Photograph caption</span></figcaption></figure>",
+      "css": ".ds-frame{margin:0;color:var(--reel,#a5b7d3);font:400 .8125rem/1.5 var(--font-body,Onest,Arial,sans-serif)}.ds-frame-media{display:grid;aspect-ratio:var(--photo-aspect,4/5);place-items:center;background:var(--aperture,#050a12);color:inherit;text-decoration:none;cursor:zoom-in;transition:filter 200ms ease}.ds-frame-media:hover{filter:brightness(1.08)}.ds-frame-media:active{filter:brightness(.9)}.ds-frame-media:focus-visible{outline:3px solid var(--signal,#f7d91a);outline-offset:-3px}.ds-frame figcaption{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.75rem;margin-top:.625rem;min-height:1.5rem}.ds-frame strong{color:var(--signal,#f7d91a);font-weight:600;font-variant-numeric:tabular-nums}.ds-frame figcaption span{overflow-wrap:break-word;text-wrap:pretty}"
     }
   ],
   "narrative": {
-    "northStar": "Midnight Cinémathèque",
-    "overview": "PHOTO B behaves like a late repertory screening rather than a magazine or social feed. Photographs are projected frames; issues are programs; navigation is the quiet apparatus that controls the sequence. The interface is spatial, dark, and decisive, with image light carrying more visual weight than decoration. Gallery, Collections, and About share the same compact header, cobalt field, square frame geometry, and restrained yellow signals. The world uses projection-booth geometry: hard frame edges, numbered cue marks, program rails, abrupt fields of color, and measured transitions. Lora brings a quiet literary note to short prose while condensed Barlow Condensed keeps titles and image metadata legible at a glance. Avoid warm paper fields, ornamental type, rounded cards, glass panels, and generic black-and-neon portfolio styling.",
+    "northStar": "Midnight Art Journal",
+    "overview": "PHOTO B is a dark art journal for a personal selection of photographs. Large, expressive grotesk headings establish each surface; photographs carry the composition, while quiet text and numbered issues make it easy to return to a selection. Gallery, Collections, About, and the viewer share the established cobalt and yellow identity.\n\nThe inherited square framing and restrained signal color remain. Archivo replaces the previous condensed display face; Onest gives prose, navigation, and captions a clear common voice. Generous photographic space and short text keep the journal deliberate on desktop and readable on phones.",
     "keyCharacteristics": [
-      "Drenched midnight-cobalt fields with one projector-yellow signal color.",
-      "Square, frame-like surfaces with no ornamental radius.",
-      "Barlow Condensed for the wordmark, titles, navigation, captions, and program notation; Lora for prose.",
-      "Large photographic beats separated by compact issue notation.",
-      "Motion behaves like a projector gate: reveal, hold, advance."
+      "Midnight-cobalt fields with yellow wayfinding.",
+      "Variable Archivo display type and readable Onest text.",
+      "Natural photographic proportions, square edges, and thin rules.",
+      "Large photographic beats balanced by concise issue information.",
+      "Responsive layouts, visible focus, and reduced-motion support."
     ],
     "rules": [
       {
         "name": "The Signal Rule",
-        "body": "Projector Yellow communicates selection, focus, or sequence; it is never scattered as decoration.",
+        "body": "Yellow identifies selection, focus, issue numbers, and the next action; it stays subordinate to photographs.",
         "section": "colors"
       },
       {
-        "name": "The Program Rule",
-        "body": "Large display type states the current viewing context once; compact labels carry all repeated issue and image notation.",
+        "name": "The Type Width Rule",
+        "body": "Use Archivo’s native width axis for condensed headings. Let text wrap naturally; never compress glyphs with transforms or insert layout-only line breaks.",
         "section": "typography"
+      },
+      {
+        "name": "The Photograph Rule",
+        "body": "Preserve source proportions. Compose the sequence through image size and spacing rather than crops that regularize every frame.",
+        "section": "layout"
       }
     ],
     "dos": [
-      "Do let one photograph dominate the opening viewport.",
-      "Do use issue numbers and view position as functional wayfinding.",
-      "Do keep transition timing deliberate and reduced-motion safe.",
-      "Do preserve clear focus states and 44px mobile targets."
+      "Do use the local Archivo and Onest files and the named type roles.",
+      "Do keep issue counts, captions, and photo position tied to actual content.",
+      "Do preserve visible keyboard focus, 44px navigation targets, and 48px viewer controls.",
+      "Do verify natural wrapping, image failures, and horizontal overflow on phones.",
+      "Do respect reduced motion and keep photograph requests behind the maturity confirmation."
     ],
     "donts": [
-      "Don't use warm cream paper, decorative serif styles, or italic display accents; keep Lora to prose and captions.",
-      "Don't use rounded cards, pills, glass, glow borders, or decorative gradients.",
-      "Don't turn every label into uppercase microcopy; reserve it for program notation.",
-      "Don't crop photographs merely to regularize the grid."
+      "Don't introduce ornamental rounded cards, glass panels, glow borders, or display shadows.",
+      "Don't use forced line breaks, horizontal type transforms, or tiny caption text to make a layout fit.",
+      "Don't add decorative eyebrows or repeat section labels as ornament.",
+      "Don't present external photographs as commercially cleared or invent product evidence."
     ]
   }
 }

@@ -2,35 +2,35 @@
 version: 1
 slug: "index-html"
 primary_target: "index.html"
-related_targets: ["src/main.ts","src/styles.css"]
+related_targets: ["src/main.ts", "src/styles.css"]
 ---
 
 ## Scope and mode
 
-- Scope: the full public PHOTO B surface in `index.html`, including Gallery, Collections, About, and lightbox states.
-- Visitor mode: Experience.
+- Full public PHOTO B surface: Gallery, Collections, About, maturity gate, and lightbox.
+- Visitor mode: Experience. User-selected direction: art journal, expressive grotesk, large photographs, dark background; seed `5a4938b4`.
 
 ## Audience and job
 
-- Public visitors browse a personal sequence of photography without entering an endless feed.
-- The main action is to enter the latest issue, move through photographs, and revisit prior issues through Collections.
-- The photographs, real issue count, captions, and stable issue URLs are the proof and content.
+Visitors open the latest personal selection, browse individual photographs, and revisit numbered issues through Collections. Photographs, real captions and counts, and stable issue URLs provide the content.
 
 ## Constraints
 
-- Preserve the static Vite implementation, external-image behavior, lazy loading, keyboard access, issue publishing format, mobile usability, and the existing 18+ confirmation flow.
-- Do not represent the Reddit-sourced photographs as commercially cleared.
-- Do not invent view counts, locations, testimonials, or additional issues.
+Preserve the static Vite build, issue text-file publishing, external image URLs, lazy loading, keyboard and touch access, image-failure states, and accessible 18+ confirmation. Request no photographs before confirmation. Keep the PHOTO B mark and established cobalt/yellow identity. Do not invent issues, social proof, locations, or commercial rights; the commercial model remains undecided.
 
 ## Chosen direction
 
-- Midnight Cinémathèque: a continuous cobalt screening room, compact quiet header, square frame geometry, and projector-yellow signals.
-- Barlow Condensed sets the wordmark, navigation, titles, captions, and issue notation; Lora is reserved for short prose and captions.
-- Gallery opens with a quiet issue panel beside a curated 3/5 photographic stage; a featured frame then breaks the grid with a side caption rail, and the following four/five rows span the full page. Additional photos repeat the rhythm; short or landscape-led issues use the adaptive fallback.
-- Collections pairs photographic covers with concise issue information. About keeps the same cobalt field and frame geometry, with a slower text-led layout.
-- At mobile widths, panels and images stack in reading order; the issue state and photo position remain visible without horizontal overflow.
-- Memorable moment: a quiet issue column opens beside the 3/5 stage, yields to a full-bleed featured frame, then continues as a full-width four/five-photo editorial grid.
+- The first body comment records THESIS, OWN-WORLD, STORY, FIRST VIEWPORT, and FORM for the chosen art journal.
+- Archivo variable display type and Onest text are self-hosted; native width settings replace transform-based compression. Text wraps without forced breaks.
+- Gallery opens with a typographic issue column beside a natural-proportion three/five photographic stage. A page-wide feature introduces a side caption rail, then four/five rows continue across the page; later rows adapt to the remaining images. Shorter or unsuitable issues use the adaptive packer.
+- Collections uses two contained-cover poster columns on desktop and one on phones. About balances a large statement with concise prose and a latest-issue action in an open layout.
+- At 680px and below photographs form one source-order column. At 380–680px brand and primary navigation share a row; the Gallery issue switcher sits below. Narrower phones stack brand and navigation.
+- The issue close has live issue/year, photograph count, next action, history link when available, and photo range. The viewer retains dark captions and square 48px controls on desktop and phones.
+
+## Finish evidence
+
+Final review disposition: ship after the desktop lightbox theme and decorative end label were corrected. Source of truth: `index.html`, `src/styles.css`, and `src/main.ts`. Captured desktop/phone states are in `.playwright-mcp/final-*.png`; final corrective review evidence is in `.playwright-mcp/review-lightbox-*.png` and `.playwright-mcp/review-end-*.png`. The local production build was checked at 390px and 1440px for Gallery, Collections, and About: Archivo/Onest loaded, no horizontal overflow or page errors, and the repaired viewer theme held. Full E2E: 47 passed and 3 desktop-only cases skipped; focused follow-up: 8 passed; unit: 4 passed. One older externally hosted photograph remains unavailable; its failure frame is preserved. Review evidence is local; it does not establish production deployment.
 
 ## Unresolved
 
-- Future commercial behavior and content rights remain undecided.
+Future commercial behavior and content rights remain undecided.

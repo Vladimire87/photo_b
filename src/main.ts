@@ -113,7 +113,7 @@ let reloadLightbox: (() => void) | undefined;
 let unobservePhotoCard: ((card: HTMLElement) => void) | undefined;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const galleryImageSizes = '(max-width: 680px) 100vw, (max-width: 1100px) 66vw, 75vw';
-const collectionImageSizes = '(max-width: 680px) 100vw, (max-width: 1100px) 58vw, 67vw';
+const collectionImageSizes = '(max-width: 680px) calc(100vw - 32px), (min-width: 1920px) 888px, 46vw';
 const featureAspectThreshold = 1.4;
 const maturityStorageKey = 'photo-b-maturity-confirmed';
 const maturityStorageLifetime = 30 * 24 * 60 * 60 * 1000;
@@ -343,7 +343,7 @@ function configureProgramEnd(photoCount: number): void {
 
     if (previousIssue) {
       programEndSecondary.href = `?issue=${previousIssue.slug}`;
-      programEndSecondary.textContent = `Previous issue — ${formatPhotoNumber(previousIssue.number)} / ${previousIssue.year} →`;
+      programEndSecondary.textContent = `Previous issue — ${formatPhotoNumber(previousIssue.number)} / ${previousIssue.year}`;
       programEndSecondary.hidden = false;
     } else {
       programEndSecondary.hidden = true;
