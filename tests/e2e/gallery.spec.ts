@@ -113,15 +113,31 @@ test('publishes a complete large-image social preview', async ({ page, request }
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'PHOTO B — Photos I Like');
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     'content',
-    'https://photob.pages.dev/assets/photo-b-og.png',
+    'https://photob.pages.dev/assets/photo-b-og-editorial.jpg',
   );
+  await expect(page.locator('meta[property="og:image:secure_url"]')).toHaveAttribute(
+    'content',
+    'https://photob.pages.dev/assets/photo-b-og-editorial.jpg',
+  );
+  await expect(page.locator('meta[property="og:image:type"]')).toHaveAttribute('content', 'image/jpeg');
   await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute('content', '1200');
   await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute('content', '630');
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
+  await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute(
+    'content',
+    'https://photob.pages.dev/assets/photo-b-og-editorial.jpg',
+  );
 
-  const preview = await request.get('/assets/photo-b-og.png');
+  const preview = await request.get('/assets/photo-b-og-editorial.jpg');
   expect(preview.ok()).toBe(true);
-  expect(preview.headers()['content-type']).toContain('image/png');
+  expect(preview.headers()['content-type']).toContain('image/jpeg');
+  const dimensions = await page.evaluate(async () => {
+    const image = new Image();
+    image.src = '/assets/photo-b-og-editorial.jpg';
+    await image.decode();
+    return { width: image.naturalWidth, height: image.naturalHeight };
+  });
+  expect(dimensions).toEqual({ width: 1200, height: 630 });
 });
 
 test('shows the mature-content notice before requesting gallery photos', async ({ page }) => {
