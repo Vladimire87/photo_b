@@ -19,8 +19,11 @@ https://images.example.com/another-photo.webp
 
 Blank lines and lines beginning with `#` are ignored. When a caption is omitted,
 the card displays only its automatic number. The gallery assigns numbers and
-layout sizes automatically — wide photographs (aspect ratio 1.4 and above) are
-promoted to full-width feature frames between rows of smaller frames. Reddit
+layout sizes automatically. Rows follow the source proportions, with occasional
+featured frames and a side caption on desktop. Portrait features and lone final
+frames are centered and limited by the screen height; extra-tall phone images
+also fit the screen without cropping. Frames reveal once as they enter view,
+and all motion respects the visitor's reduced-motion setting. Reddit
 preview URLs are signed for their exact `width` parameter, so those images are
 served as single responsive candidates instead of generated variants. Keep the
 source URLs public and hotlinkable; hosts that block embedding will show the
@@ -68,8 +71,8 @@ npm run check:images
 `npm run check:images` verifies that every image URL in `src/data/issues` is
 still reachable and exits with an error when any link is dead. Run it before
 publishing a new issue — external hosts (especially Reddit preview URLs) remove
-or re-sign images over time, and dead photos silently disappear from the
-gallery. The check is intentionally kept out of the automated tests because
+or re-sign images over time. Unavailable frames keep their place and numbering
+in the gallery. The check is intentionally kept out of the automated tests because
 upstream hosts may block datacenter IPs.
 
 The production-ready static files are written to `dist/`, including a generated

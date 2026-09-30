@@ -25,12 +25,15 @@ function countIssuePhotos(issueSlug: string): number {
     .length;
 }
 
-function latestIssueSlug(): string {
+function issueSlugs(): string[] {
   return readdirSync(new URL('../../src/data/issues', import.meta.url))
     .map((name) => name.match(/^(\d{4}-\d{2})\.txt$/)?.[1])
     .filter((slug): slug is string => Boolean(slug))
-    .sort()
-    .at(-1)!;
+    .sort();
+}
+
+function latestIssueSlug(): string {
+  return issueSlugs().at(-1)!;
 }
 
 function firstIssuePhotoUrl(issueSlug: string): string {
@@ -81,6 +84,26 @@ async function mockImages(
     }
 
     await route.continue();
+  });
+}
+
+async function mockSizedImages(
+  page: Page,
+  dimensions: (url: string) => [number, number],
+): Promise<void> {
+  await acceptMaturity(page);
+  await page.route('https://**/*', async (route) => {
+    if (route.request().resourceType() !== 'image') {
+      await route.continue();
+      return;
+    }
+
+    const [width, height] = dimensions(route.request().url());
+    await route.fulfill({
+      status: 200,
+      contentType: 'image/svg+xml',
+      body: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"></svg>`,
+    });
   });
 }
 
@@ -266,7 +289,7 @@ test('keeps mixed aspect ratios visible without forcing the first photo to fill 
     await route.continue();
   });
 
-  await page.goto('/');
+  await page.goto('/?issue=2026-02');
   await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
   await expect(page.locator('.photo-card').nth(1)).toHaveClass(/is-loaded/);
 
@@ -513,6 +536,7 @@ test('contains the editorial composition on ultra-wide screens', async ({ page, 
       cards.slice(0, 7).every((card) => card.classList.contains('is-loaded'))
     )),
   ).toBe(true);
+  await expect(page.locator('.photo-card.is-editorial-feature')).toHaveCount(1);
 
   const composition = await page.locator('#gallery-page').evaluate((pageElement) => {
     const gallery = pageElement.querySelector<HTMLElement>('#gallery')!;
@@ -636,6 +660,9 @@ test('fills the row that a wide feature photograph interrupts', async ({ page, i
 
   await page.goto('/?issue=2026-02');
   await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
+  await expect(page.locator('.photo-card[data-caption="Sisse Marie"]')).toHaveClass(/is-loaded/);
+  await expect(page.locator('.photo-card[data-caption="Anastasiia"]')).toHaveClass(/is-loaded/);
+  await expect(page.locator('.photo-card[data-caption^="Sara Sampaio"]')).toHaveClass(/is-feature/);
 
   const row = await page.evaluate(() => {
     const gallery = document.querySelector('#gallery')!.getBoundingClientRect();
@@ -705,6 +732,126 @@ test('keeps a wide feature photograph within the viewport on ultra-wide screens'
   expect(featureMetrics.overflow).toBeLessThanOrEqual(1);
 });
 
+test('fits a portrait feature to the screen and recomposes it after a height change', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'The caption rail belongs to the desktop composition.');
+  await mockSizedImages(page, () => [800, 1200]);
+  await page.goto('/');
+  const feature = page.locator('.photo-card.is-editorial-feature');
+  await expect(feature).toHaveCount(1);
+  await expect(feature).toHaveClass(/is-loaded/);
+
+  for (const [width, height] of [[1440, 900], [1440, 650], [1024, 900], [1920, 1080]]) {
+    await page.setViewportSize({ width, height });
+    await expect.poll(async () => feature.evaluate((card) => {
+      const media = card.querySelector<HTMLElement>('.photo-card__media')!.getBoundingClientRect();
+      const header = document.querySelector<HTMLElement>('.site-header')!.offsetHeight;
+      const gutter = parseFloat(getComputedStyle(document.querySelector('#gallery-page')!).paddingTop);
+      return media.height + header + gutter * 2 + 64 - innerHeight;
+    })).toBeLessThanOrEqual(1);
+
+    const geometry = await feature.evaluate((card) => {
+      const bounds = card.getBoundingClientRect();
+      const media = card.querySelector<HTMLElement>('.photo-card__media')!.getBoundingClientRect();
+      const caption = card.querySelector<HTMLElement>('.photo-card__meta')!.getBoundingClientRect();
+      const image = card.querySelector<HTMLImageElement>('img')!;
+      const page = document.querySelector('#gallery-page')!.getBoundingClientRect();
+      return {
+        naturalAspect: image.naturalWidth / image.naturalHeight,
+        mediaAspect: media.width / media.height,
+        captionSide: caption.right < media.left,
+        centered: Math.abs((bounds.left + bounds.right) / 2 - (page.left + page.right) / 2) < 1,
+      };
+    });
+    expect(geometry.mediaAspect).toBeCloseTo(geometry.naturalAspect, 2);
+    expect(geometry.captionSide).toBe(true);
+    expect(geometry.centered).toBe(true);
+  }
+});
+
+test('keeps a tall final solo frame uncropped and below the masthead height limit', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'The adaptive row packer is a desktop layout.');
+  await page.setViewportSize({ width: 1440, height: 650 });
+  const urls = readFileSync(new URL(`../../src/data/issues/${latestIssueSlug()}.txt`, import.meta.url), 'utf8')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'))
+    .map((line) => line.split('|')[0].trim());
+  await mockSizedImages(page, (url) => url === urls.at(-1)
+    ? [800, 2400]
+    : url === urls.at(-2) ? [1600, 1000] : [900, 900]);
+  await page.goto('/');
+  const lastCard = page.locator('.photo-card').last();
+  await lastCard.scrollIntoViewIfNeeded();
+  await expect(lastCard).toHaveClass(/is-loaded/);
+  await expect.poll(() => lastCard.locator('.photo-card__media').evaluate((media) => (
+    media.getBoundingClientRect().height
+  ))).toBeLessThan(500);
+
+  const geometry = await lastCard.evaluate((card) => {
+    const media = card.querySelector<HTMLElement>('.photo-card__media')!.getBoundingClientRect();
+    const bounds = card.getBoundingClientRect();
+    const gallery = document.querySelector('#gallery')!.getBoundingClientRect();
+    const previous = card.previousElementSibling!.getBoundingClientRect();
+    return {
+      aspect: media.width / media.height,
+      centered: Math.abs((bounds.left + bounds.right) / 2 - (gallery.left + gallery.right) / 2) < 1,
+      belowPrevious: bounds.top >= previous.bottom,
+    };
+  });
+  expect(geometry.aspect).toBeCloseTo(1 / 3, 2);
+  expect(geometry.centered).toBe(true);
+  expect(geometry.belowPrevious).toBe(true);
+});
+
+test('fits extra-tall mobile photographs without cropping or displacing their captions', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockSizedImages(page, () => [800, 2400]);
+  await page.goto('/');
+  const firstCard = page.locator('.photo-card').first();
+  await expect(firstCard).toHaveClass(/is-loaded/);
+  await expect.poll(() => firstCard.locator('.photo-card__media').evaluate((media) => (
+    media.getBoundingClientRect().height
+  ))).toBeLessThanOrEqual(748);
+  const geometry = await firstCard.evaluate((card) => {
+    const media = card.querySelector<HTMLElement>('.photo-card__media')!.getBoundingClientRect();
+    const caption = card.querySelector<HTMLElement>('.photo-card__meta')!.getBoundingClientRect();
+    return {
+      aspect: media.width / media.height,
+      centered: Math.abs((media.left + media.right) / 2 - innerWidth / 2) < 1,
+      captionAligned: Math.abs(caption.left - media.left) < 1 && Math.abs(caption.right - media.right) < 1,
+      overflow: document.documentElement.scrollWidth - innerWidth,
+    };
+  });
+  expect(geometry.aspect).toBeCloseTo(1 / 3, 2);
+  expect(geometry.centered).toBe(true);
+  expect(geometry.captionAligned).toBe(true);
+  expect(geometry.overflow).toBeLessThanOrEqual(1);
+});
+
+test('reveals distant frames once as they enter the viewport and keeps them visible on return', async ({ page }) => {
+  await mockImages(page);
+  await page.goto('/');
+  const keyboardCard = page.locator('.photo-card').nth(20);
+  await expect(keyboardCard).toHaveClass(/is-reveal-pending/);
+  await keyboardCard.locator('.photo-card__media').focus();
+  await expect(keyboardCard).not.toHaveClass(/is-reveal-pending/);
+  await expect(keyboardCard.locator('.photo-card__media')).toHaveCSS('opacity', '1');
+  await expect(keyboardCard.locator('.photo-card__media')).toHaveCSS('transition-duration', '0s');
+  const lastCard = page.locator('.photo-card').last();
+  await expect(lastCard).toHaveClass(/is-reveal-pending/);
+  await lastCard.scrollIntoViewIfNeeded();
+  await expect(lastCard).not.toHaveClass(/is-reveal-pending/);
+  await expect(lastCard.locator('.photo-card__media')).toHaveCSS('opacity', '1');
+  await page.locator('.photo-card').first().scrollIntoViewIfNeeded();
+  await expect(lastCard).not.toHaveClass(/is-reveal-pending/);
+
+  await page.goto('/?view=collections');
+  const cover = page.locator('.collection-card').last();
+  await cover.scrollIntoViewIfNeeded();
+  await expect(cover).not.toHaveClass(/is-reveal-pending/);
+  await expect(cover.locator('.collection-card__media')).toHaveCSS('opacity', '1');
+});
+
 test('does not request distant photos until they approach the viewport', async ({ page }) => {
   const requestedImages: string[] = [];
   await mockImages(page, (url) => requestedImages.push(url));
@@ -738,12 +885,13 @@ test('opens the latest issue at its stable URL and disables missing neighbors', 
   await expect(page.locator('#next-issue')).toHaveAttribute('aria-disabled', 'true');
 
   const previousIssue = page.locator('#previous-issue');
-  await expect(previousIssue).toHaveAttribute('href', /^\?issue=\d{4}-\d{2}$/);
-  await previousIssue.click();
-  await expect(page).toHaveURL(/\?issue=\d{4}-\d{2}$/);
-  await expect(page).toHaveTitle(/PHOTO B — Issue \d{2} \/ 20\d{2}/);
-  await expect(page.locator('#issue-label')).toContainText(/Issue \d{2}/);
-  expect(await page.locator('.photo-card').count()).toBeGreaterThan(0);
+  for (const slug of issueSlugs().reverse().slice(1)) {
+    await expect(previousIssue).toHaveAttribute('href', `?issue=${slug}`);
+    await previousIssue.click();
+    await expect(page).toHaveURL(new RegExp(`\\?issue=${slug}$`));
+    await expect(page).toHaveTitle(`PHOTO B — Issue ${slug.slice(5)} / ${slug.slice(0, 4)}`);
+    expect(await page.locator('.photo-card').count()).toBe(countIssuePhotos(slug));
+  }
   await expect(page.locator('#previous-issue')).toHaveAttribute('aria-disabled', 'true');
   await expect(page.locator('#next-issue')).toHaveAttribute('href', /^\?issue=\d{4}-\d{2}$/);
 });
@@ -1022,9 +1170,9 @@ test('opens and closes the touch-friendly lightbox', async ({ page }) => {
       closeHeight: close.height,
     };
   });
-  expect(viewerTheme.titleColor).toBe('rgb(255, 255, 255)');
+  expect(viewerTheme.titleColor).toBe('rgb(244, 241, 233)');
   if (page.viewportSize()!.width > 680) {
-    expect(viewerTheme.captionBackground).toBe('rgba(5, 10, 18, 0.98)');
+    expect(viewerTheme.captionBackground).toBe('rgba(7, 12, 19, 0.98)');
   }
   expect(viewerTheme.closeWidth).toBeGreaterThanOrEqual(44);
   expect(viewerTheme.closeHeight).toBeGreaterThanOrEqual(44);
@@ -1064,6 +1212,9 @@ test('removes gallery and lightbox motion for reduced-motion users', async ({ pa
     };
   });
   expect(galleryMotion).toEqual({ animationName: 'none', transitionDuration: '0s' });
+  await expect(page.locator('.is-reveal-pending')).toHaveCount(0);
+  await expect(page.locator('.photo-card__media').first()).toHaveCSS('opacity', '1');
+  await expect(page.locator('.hero h1')).toHaveCSS('animation-name', 'none');
 
   await page.locator('.photo-card__media').first().click();
   await expect(page.locator('.glightbox-container')).toBeVisible();

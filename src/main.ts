@@ -113,7 +113,7 @@ let reloadLightbox: (() => void) | undefined;
 let unobservePhotoCard: ((card: HTMLElement) => void) | undefined;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const galleryImageSizes = '(max-width: 680px) 100vw, (max-width: 1100px) 66vw, 75vw';
-const collectionImageSizes = '(max-width: 680px) calc(100vw - 32px), (min-width: 1920px) 888px, 46vw';
+const collectionImageSizes = '(max-width: 680px) calc(100vw - 32px), (max-width: 1100px) 46vw, (min-width: 1640px) 461px, 30vw';
 const featureAspectThreshold = 1.4;
 const maturityStorageKey = 'photo-b-maturity-confirmed';
 const maturityStorageLifetime = 30 * 24 * 60 * 60 * 1000;
@@ -284,6 +284,49 @@ const lazyImageObserver = 'IntersectionObserver' in window
       { rootMargin: '600px 0px' },
     )
   : null;
+
+const revealedElements = new WeakSet<HTMLElement>();
+const revealObserver = !reduceMotion && 'IntersectionObserver' in window
+  ? new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          return;
+        }
+
+        const element = entry.target as HTMLElement;
+        element.classList.remove('is-reveal-pending');
+        observer.unobserve(element);
+      });
+    }, { rootMargin: '0px 0px -24px 0px', threshold: 0.05 })
+  : null;
+
+function revealOnApproach(elements: HTMLElement[]): void {
+  if (!revealObserver) {
+    return;
+  }
+
+  elements.forEach((element, index) => {
+    if (revealedElements.has(element)) {
+      return;
+    }
+
+    revealedElements.add(element);
+    element.style.setProperty('--reveal-delay', `${Math.min(index % 5, 3) * 45}ms`);
+    element.classList.add('is-reveal-pending');
+    revealObserver.observe(element);
+    element.addEventListener('focusin', () => {
+      element.classList.remove('is-reveal-pending');
+      revealObserver.unobserve(element);
+    }, { once: true });
+  });
+}
+
+function getPhotoHeightLimit(): number {
+  const isMobile = window.matchMedia('(max-width: 680px)').matches;
+  const gutter = Number.parseFloat(getComputedStyle(galleryPage).paddingTop) || 0;
+  const reservedHeight = isMobile ? 96 : siteHeader.offsetHeight + gutter * 2 + 64;
+  return Math.min(760, Math.max(240, window.innerHeight - reservedHeight));
+}
 
 function configureIssueLink(
   link: HTMLAnchorElement,
@@ -514,6 +557,7 @@ function layoutGallery(): void {
   layoutFrame = undefined;
   const cards = [...gallery.querySelectorAll<HTMLElement>('.photo-card')]
     .sort((first, second) => getSourceIndex(first) - getSourceIndex(second));
+  const photoHeightLimit = getPhotoHeightLimit();
 
   if (window.matchMedia('(max-width: 680px)').matches) {
     setGalleryCardOrder(cards);
@@ -522,9 +566,14 @@ function layoutGallery(): void {
       card.style.removeProperty('position');
       card.style.removeProperty('transform');
       card.style.removeProperty('width');
+      card.style.setProperty('--card-media-width', `${Math.min(
+        gallery.clientWidth,
+        photoHeightLimit * getCardAspect(card),
+      )}px`);
     });
     gallery.style.removeProperty('height');
     gallery.classList.add('is-arranged');
+    revealOnApproach(cards);
     return;
   }
 
@@ -543,6 +592,7 @@ function layoutGallery(): void {
     card.style.removeProperty('--editorial-media-height');
     card.style.removeProperty('--editorial-divider-before');
     card.style.removeProperty('--editorial-divider-after');
+    card.style.removeProperty('--card-media-width');
   });
 
   const openingAspects = cards.slice(0, 6).map((card) => Number.parseFloat(card.dataset.photoAspect ?? ''));
@@ -559,9 +609,8 @@ function layoutGallery(): void {
     const pageWidth = availableWidth - pageOffset;
     const pageColumnGap = Number.parseFloat(pageStyles.columnGap) || 0;
     const columnWidth = (pageWidth - pageColumnGap * 11) / 12;
-    const featureAsideWidth = columnWidth * 2;
-    const featureGap = pageColumnGap;
-    const stageScale = availableWidth / 715.53125;
+    const featureAsideWidth = Math.min(240, columnWidth * 2);
+    const featureGap = Math.max(pageColumnGap, columnGap * 1.5);
     const pageScale = pageWidth / 954.375;
 
     cards.forEach((card) => {
@@ -607,8 +656,12 @@ function layoutGallery(): void {
       gap: number,
     ): number => {
       const aspectSum = rowCards.reduce((total, card) => total + getCardAspect(card), 0);
-      const height = (rowWidth - gap * Math.max(0, rowCards.length - 1)) / aspectSum;
-      let left = rowLeft;
+      const height = Math.min(
+        photoHeightLimit,
+        (rowWidth - gap * Math.max(0, rowCards.length - 1)) / aspectSum,
+      );
+      const occupiedWidth = height * aspectSum + gap * Math.max(0, rowCards.length - 1);
+      let left = rowLeft + (rowWidth - occupiedWidth) / 2;
 
       rowCards.forEach((card) => {
         const width = height * getCardAspect(card);
@@ -625,21 +678,31 @@ function layoutGallery(): void {
     top = placeNaturalRow(
       orderedCards.slice(0, 3),
       top,
-      -2 * stageScale,
+      0,
       availableWidth,
-      15 * stageScale,
-    ) + 23 * stageScale;
+      columnGap,
+    ) + rowGap;
     top = placeNaturalRow(
       orderedCards.slice(3, 8),
       top,
-      -2 * stageScale,
+      0,
       availableWidth,
-      15 * stageScale,
-    ) + 25 * stageScale + 21 * pageScale;
+      columnGap,
+    ) + rowGap * 1.5;
 
     const featureCard = orderedCards[8];
-    placeEditorialCard(featureCard, pageOffset, pageWidth, top, true);
-    top += featureCard.getBoundingClientRect().height + 44 * pageScale;
+    const featureWidth = Math.min(
+      pageWidth,
+      featureAsideWidth + featureGap + photoHeightLimit * getCardAspect(featureCard),
+    );
+    placeEditorialCard(
+      featureCard,
+      pageOffset + (pageWidth - featureWidth) / 2,
+      featureWidth,
+      top,
+      true,
+    );
+    top += featureCard.getBoundingClientRect().height + rowGap * 1.5;
 
     top = placeNaturalRow(
       orderedCards.slice(9, 13),
@@ -647,14 +710,14 @@ function layoutGallery(): void {
       pageOffset,
       pageWidth,
       24 * pageScale,
-    ) + 12 * pageScale;
+    ) + rowGap;
     top = placeNaturalRow(
       orderedCards.slice(13, 18),
       top,
       pageOffset,
       pageWidth,
       24 * pageScale,
-    );
+    ) + rowGap;
 
     const remainingProfiles = [
       { minimum: 280, preferred: 0.42, maximum: 460 },
@@ -673,10 +736,13 @@ function layoutGallery(): void {
         return;
       }
 
-      const height = (
-        pageWidth - remainingGap * Math.max(0, remainingRow.length - 1)
-      ) / remainingAspectSum;
-      let left = pageOffset;
+      const height = Math.min(
+        photoHeightLimit,
+        (pageWidth - remainingGap * Math.max(0, remainingRow.length - 1)) / remainingAspectSum,
+      );
+      const occupiedWidth = height * remainingAspectSum
+        + remainingGap * Math.max(0, remainingRow.length - 1);
+      let left = pageOffset + (pageWidth - occupiedWidth) / 2;
 
       remainingRow.forEach((card) => {
         const width = height * getCardAspect(card);
@@ -688,7 +754,7 @@ function layoutGallery(): void {
       remainingRow.forEach((card) => {
         bottom = Math.max(bottom, top + card.getBoundingClientRect().height);
       });
-      top = bottom + remainingGap;
+      top = bottom + rowGap;
       remainingRow = [];
       remainingAspectSum = 0;
       remainingRowIndex += 1;
@@ -716,9 +782,10 @@ function layoutGallery(): void {
     });
 
     placeRemainingRow();
-    const galleryBottom = remainingCards.length > 0 ? top - remainingGap : top;
+    const galleryBottom = top - rowGap;
     gallery.style.height = `${Math.max(0, galleryBottom)}px`;
     gallery.classList.add('is-arranged');
+    revealOnApproach(orderedCards);
     return;
   }
 
@@ -758,11 +825,12 @@ function layoutGallery(): void {
 
     const gapsWidth = columnGap * Math.max(0, row.length - 1);
     const naturalRowHeight = (availableWidth - gapsWidth) / aspectSum;
-    const rowHeight = shouldFill || row.length > 1
+    const preferredHeight = shouldFill || row.length > 1
       ? naturalRowHeight
       : Math.min(getSoloRowHeight(), naturalRowHeight);
+    const rowHeight = Math.min(photoHeightLimit, preferredHeight);
     const rowWidth = rowHeight * aspectSum + gapsWidth;
-    let left = shouldFill ? 0 : Math.max(0, (availableWidth - rowWidth) / 2);
+    let left = Math.max(0, (availableWidth - rowWidth) / 2);
 
     row.forEach((card) => {
       const width = rowHeight * getAspect(card);
@@ -790,10 +858,13 @@ function layoutGallery(): void {
     const isUltraWide = window.innerWidth > 2400;
     const featureOffset = isUltraWide ? 0 : galleryStart - pageContentStart;
     const availableFeatureWidth = availableWidth + featureOffset;
-    const maxHeight = Math.max(360, window.innerHeight - 160);
-    const width = Math.min(availableFeatureWidth, maxHeight * aspect);
+    const asideWidth = Math.min(240, availableFeatureWidth / 6);
+    const featureGap = columnGap * 1.5;
+    const width = Math.min(availableFeatureWidth, asideWidth + featureGap + photoHeightLimit * aspect);
     const left = -featureOffset + (availableFeatureWidth - width) / 2;
 
+    card.style.setProperty('--feature-aside-width', `${asideWidth}px`);
+    card.style.setProperty('--feature-gap', `${featureGap}px`);
     card.style.position = 'absolute';
     card.style.width = `${width}px`;
     card.style.transform = `translate3d(${left}px, ${top}px, 0)`;
@@ -802,9 +873,10 @@ function layoutGallery(): void {
   };
 
   const placeWideSolo = (card: HTMLElement): void => {
+    const width = Math.min(availableWidth, photoHeightLimit * getAspect(card));
     card.style.position = 'absolute';
-    card.style.width = `${availableWidth}px`;
-    card.style.transform = `translate3d(0, ${top}px, 0)`;
+    card.style.width = `${width}px`;
+    card.style.transform = `translate3d(${(availableWidth - width) / 2}px, ${top}px, 0)`;
     top += card.getBoundingClientRect().height + rowGap;
     rowIndex += 1;
   };
@@ -864,6 +936,7 @@ function layoutGallery(): void {
 
   gallery.style.height = `${Math.max(0, top - rowGap)}px`;
   gallery.classList.add('is-arranged');
+  revealOnApproach(cards);
 }
 
 function scheduleGalleryLayout(): void {
@@ -1043,6 +1116,7 @@ async function renderCollections(): Promise<void> {
   });
 
   collectionsGrid.append(fragment);
+  revealOnApproach([...collectionsGrid.querySelectorAll<HTMLElement>('.collection-card')]);
 }
 
 function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
@@ -1175,6 +1249,7 @@ function createPhotoCard(photo: PhotoEntry, index: number): HTMLElement {
 }
 
 const maturityGateWasShown = await requestMaturityConfirmation();
+document.body.classList.add('is-ready');
 
 if (pageView === 'gallery' || pageView === 'collections') {
   initializeAnalytics();

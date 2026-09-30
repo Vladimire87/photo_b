@@ -2,14 +2,14 @@
 name: PHOTO B
 description: A dark art journal for a personal sequence of photographic issues
 colors:
-  midnight-cobalt: "#081d39"
-  booth-black: "#050a12"
-  projector-yellow: "#f7d91a"
-  screen-white: "#ffffff"
-  reel-blue: "#a5b7d3"
-  aperture-deep: "#081126"
-  frame-line: "rgba(165, 183, 211, 0.28)"
-  control-line: "rgba(255, 255, 255, 0.65)"
+  midnight-cobalt: "#0b1726"
+  booth-black: "#070c13"
+  projector-yellow: "#e8cf81"
+  screen-white: "#f4f1e9"
+  reel-blue: "#a9b4c2"
+  aperture-deep: "#111f30"
+  frame-line: "rgba(169, 180, 194, 0.22)"
+  control-line: "rgba(244, 241, 233, 0.6)"
 typography:
   display:
     fontFamily: "Archivo, Arial Narrow, sans-serif"
@@ -94,18 +94,18 @@ The inherited square framing and restrained signal color remain. Archivo replace
 
 ## Colors
 
-The established cobalt field stays dominant; yellow supplies warm, functional contrast.
+The established blue field is softened to ink navy, with warm ivory text and a muted yellow signal. The quieter palette gives color and black-and-white photographs room to share the same issue.
 
 ### Primary
 
-- **Midnight Cobalt:** the page, masthead, and common background.
-- **Projector Yellow:** active links, focus outlines, issue/photo numbers, and primary actions.
+- **Midnight Cobalt:** an ink navy for the page, masthead, and common background.
+- **Projector Yellow:** a warm, muted yellow for active links, focus outlines, issue/photo numbers, and primary actions.
 
 ### Neutral
 
 - **Booth Black:** image apertures, the maturity panel, and the near-black viewer overlay.
-- **Screen White:** primary text; it also fills maturity actions on hover.
-- **Reel Blue:** supporting prose, captions, counts, and inactive links.
+- **Screen White:** warm ivory primary text; it also fills maturity actions on hover.
+- **Reel Blue:** a quiet blue-gray for supporting prose, captions, counts, and inactive links.
 - **Aperture Deep:** the quiet loading placeholder behind unresolved images.
 - **Frame Line / Control Line:** subdued section dividers and stronger secondary-action borders.
 
@@ -133,17 +133,23 @@ At 680px and below, display becomes `clamp(2.5rem, 10.5vw, 4rem)` and title beco
 
 ## Layout
 
-Main surfaces share a 1920px maximum width and the fluid page gutter. Gallery starts on a twelve-column grid: a three-column introduction beside a nine-column photographic stage. Between 681px and 900px this becomes four columns beside eight. The eligible portrait-led sequence opens with three photographs, then five, a page-wide feature with a two-column caption rail, then four and five. Later rows adapt to remaining image proportions; shorter or unsuitable issues use the adaptive packer. This cadence belongs to Gallery, not every future surface.
+Main surfaces share a 1920px maximum width and the fluid page gutter. Gallery starts on a twelve-column grid: a three-column introduction beside a nine-column photographic stage. Between 681px and 900px this becomes four columns beside eight. The eligible portrait-led sequence opens with three photographs, then five, a centered feature with a caption rail, then four and five. Later rows adapt to remaining image proportions; shorter or unsuitable issues use the adaptive packer. This cadence belongs to Gallery, not every future surface.
 
-Collections has two poster columns, with contained covers above issue information. About is an open text composition: a large statement on the left and short prose, signature, and latest-issue action on the right. It has no enclosing border box.
+Desktop photographic height is limited to the smaller of 760px and the viewport after allowing for the masthead, page gutters, and caption/framing space. The limit applies to the featured photograph, adaptive rows, and a final lone frame. Horizontal features can span the page; portrait features become a narrower centered plate with the caption beside them. Rows that reach the height limit are centered instead of stretching their photographs. Layout responds to changes in viewport height as well as width.
+
+Collections has three poster columns on wide screens and two at 1100px and below, with contained covers above issue information. Poster height is limited to 576px or the viewport minus 256px, whichever is smaller, with a 288px minimum. Narrower posters stay centered in their columns. About is an open text composition: a large statement on the left and short prose, signature, and latest-issue action on the right. It has no enclosing border box.
 
 At 1100px and below, the issue switcher moves to a second masthead row and the Collections introduction stacks. At 680px and below, the page gutter is 1rem, Gallery becomes one full-width image column in source order, Collections becomes one poster column, and About stacks. From 380px through 680px, brand and primary navigation share one row; Gallery adds an issue row. Narrower phones stack brand and navigation. The phone header stays in normal flow; larger headers are sticky.
+
+On phones, ordinary frames use the full column width. Extra-tall photographs are limited to 760px or the viewport height minus 96px, whichever is smaller, with a 240px minimum for short landscape viewports. These photographs are narrower and centered, and their captions align with the image edges. Source proportions stay intact.
 
 **The Photograph Rule.** Preserve source proportions. Compose the sequence through image size and spacing rather than crops that regularize every frame.
 
 ## Elevation & Depth
 
-No conventional shadows or glass are used. Image luminance, near-black apertures, cobalt fields, and thin rules provide depth. Loaded images brighten slightly on hover-capable devices; they do not lift. Loading placeholders pulse, photographs settle through opacity, and all transitions and animation stop under reduced motion.
+No conventional shadows or glass are used. Image luminance, near-black apertures, ink-blue fields, and thin rules provide depth. Loaded images brighten slightly on hover-capable devices; they do not lift or zoom. Loading placeholders pulse, and photographs settle through opacity.
+
+Headings and introductory copy enter with a short vertical fade, staggered by 70ms. Gallery frames and collection posters reveal once when they approach the visible viewport, using a 16px vertical movement and 650–700ms easing. Image placement stays independent of this motion, so reveals do not change row geometry or loading positions. Keyboard focus reveals its frame immediately. Navigation rules draw from the left, feature caption rules unfold, and outlined actions fill from the bottom. Reduced motion disables animations and transitions and makes every frame visible immediately.
 
 ## Shapes
 
@@ -153,7 +159,7 @@ Structural corners are square. Rectangular photographs, poster covers, outlined 
 
 ### Masthead and Navigation
 
-A compact common masthead carries the mark and wordmark, primary links, and Gallery’s issue switcher. Current navigation turns yellow with a 3px bottom rule. Navigation and issue controls have at least 44px targets. Disabled issue controls remain visible at reduced opacity. Live photo position is available to assistive technology, rather than a visible secondary counter.
+A compact common masthead carries the mark and wordmark, primary links, and Gallery’s issue switcher. Current navigation turns yellow with a 2px bottom rule; hover and focus draw the same rule. Navigation and issue controls have at least 44px targets. Disabled issue controls remain visible at reduced opacity. Live photo position is available to assistive technology, rather than a visible secondary counter.
 
 ### Actions
 
@@ -161,7 +167,7 @@ The entry action is a square yellow outline, at least 48px tall; hover fills it 
 
 ### Photographic Frames
 
-Images retain natural ratios with `object-fit: contain`. A number and optional caption sit underneath; desktop features move the caption into a side rail, while phones restore the normal caption row. Failed external images keep their layout slot and show an unavailable message. Loading and failure text uses the meta role.
+Images retain natural ratios with `object-fit: contain`. A number and optional caption sit underneath; desktop features move the caption into a side rail, while phones restore the normal caption row. Featured and lone frames follow the viewport height limit instead of filling the available width at any cost. Failed external images keep their layout slot and show an unavailable message. Loading and failure text uses the meta role.
 
 ### Collection Posters
 
