@@ -9,10 +9,3 @@ tmp/
 # Local Codex skills and lifecycle hooks
 .agents/
 .codex/
-
-# Impeccable: ignore local state, keep durable design documentation
-.impeccable/*
-!.impeccable/design.json
-!.impeccable/surfaces/
-.impeccable/surfaces/*
-!.impeccable/surfaces/*.md
