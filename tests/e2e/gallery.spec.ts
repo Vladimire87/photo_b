@@ -913,17 +913,17 @@ test('opens the latest issue at its stable URL and disables missing neighbors', 
 });
 
 test('falls back to the latest issue when an unknown issue is requested', async ({ page }) => {
+  const latestSlug = latestIssueSlug();
+  const latestIssueLabel = `Issue ${latestSlug.slice(5)} / ${latestSlug.slice(0, 4)}`;
   const requestedImages: string[] = [];
   await mockImages(page, (url) => requestedImages.push(url));
-  await page.goto('/');
-  const latestTitle = await page.title();
-  const latestIssueLabel = (await page.locator('#issue-label').innerText()).replace(/\s+/g, ' ').trim();
 
   await page.goto('/?issue=2026-99');
+  await expect(page).toHaveTitle(`PHOTO B — ${latestIssueLabel}`);
+  await expect(page.locator('#issue-label')).toHaveText(latestIssueLabel);
+  await expect(page.locator('.photo-card')).toHaveCount(countIssuePhotos(latestSlug));
   await expect(page.locator('.photo-card').first()).toHaveClass(/is-loaded/);
-
-  await expect(page).toHaveTitle(latestTitle);
-  expect((await page.locator('#issue-label').innerText()).replace(/\s+/g, ' ').trim()).toBe(latestIssueLabel);
+  await expect(page.locator('.photo-card img').first()).toHaveAttribute('src', firstIssuePhotoUrl(latestSlug));
   expect(requestedImages.length).toBeGreaterThan(0);
 });
 
